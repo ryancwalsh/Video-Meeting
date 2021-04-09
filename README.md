@@ -1,9 +1,5 @@
 # Video Meeting
 
-Google Meet / Zoom clone in a few lines of code.
-
-Video Meeting is a video conference website that lets you stay in touch with all your friends.
-
 Developed with ReactJS, Node.js, SocketIO.
 
 ![Website](https://i.imgur.com/HhZD01o.jpg)
@@ -18,10 +14,18 @@ Try Video Meeting here [video.sebastienbiollo.com](https://video.sebastienbiollo
 - Unlimited users
 - Messaging chat and video streaming in real-time
 - Screen sharing to present documents, slides, and more
-- Everyting is peer-to-peer thanks to webrtc
+- Everything is peer-to-peer thanks to WebRTC
 
 
 ### Local setup
 
 1. `yarn install`
 2. `yarn dev`
+
+
+### TODO
+
+1. Fix aspect ratio of video
+1. Split Video.js into smaller files
+1. Set up Prettier and Eslint
+1. Use cookie to save username / session

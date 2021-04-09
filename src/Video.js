@@ -20,7 +20,7 @@ import Modal from 'react-bootstrap/Modal'
 import 'bootstrap/dist/css/bootstrap.css'
 import "./Video.css"
 
-const server_url = process.env.NODE_ENV === 'production' ? 'https://video.sebastienbiollo.com' : "http://localhost:4001"
+const server_url = process.env.SERVER_URL;
 
 var connections = {}
 const peerConnectionConfig = {
@@ -52,7 +52,7 @@ class Video extends Component {
 			message: "",
 			newmessages: 0,
 			askForUsername: true,
-			username: faker.internet.userName(),
+			username: '' // faker.internet.userName(), // TODO: Create a "generate a username for me" feature
 		}
 		connections = {}
 
@@ -457,7 +457,7 @@ class Video extends Component {
 					<div>
 						<div style={{background: "white", width: "30%", height: "auto", padding: "20px", minWidth: "400px",
 								textAlign: "center", margin: "auto", marginTop: "50px", justifyContent: "center"}}>
-							<p style={{ margin: 0, fontWeight: "bold", paddingRight: "50px" }}>Set your username</p>
+							<p style={{ margin: 0, fontWeight: "bold", paddingRight: "50px" }}>What is your name?</p>
 							<Input placeholder="Username" value={this.state.username} onChange={e => this.handleUsername(e)} />
 							<Button variant="contained" color="primary" onClick={this.connect} style={{ margin: "20px" }}>Connect</Button>
 						</div>
@@ -470,25 +470,25 @@ class Video extends Component {
 					:
 					<div>
 						<div className="btn-down" style={{ backgroundColor: "whitesmoke", color: "whitesmoke", textAlign: "center" }}>
-							<IconButton style={{ color: "#424242" }} onClick={this.handleVideo}>
+							<IconButton style={{ color: "#424242" }} onClick={this.handleVideo} title="Enable/disable camera">
 								{(this.state.video === true) ? <VideocamIcon /> : <VideocamOffIcon />}
 							</IconButton>
 
-							<IconButton style={{ color: "#f44336" }} onClick={this.handleEndCall}>
+							<IconButton style={{ color: "#f44336" }} onClick={this.handleEndCall} title="Enable/disable call">
 								<CallEndIcon />
 							</IconButton>
 
-							<IconButton style={{ color: "#424242" }} onClick={this.handleAudio}>
+							<IconButton style={{ color: "#424242" }} onClick={this.handleAudio} title="Enable/disable microphone">
 								{this.state.audio === true ? <MicIcon /> : <MicOffIcon />}
 							</IconButton>
 
 							{this.state.screenAvailable === true ?
-								<IconButton style={{ color: "#424242" }} onClick={this.handleScreen}>
+								<IconButton style={{ color: "#424242" }} onClick={this.handleScreen} title="Enable/disable screenshare">
 									{this.state.screen === true ? <ScreenShareIcon /> : <StopScreenShareIcon />}
 								</IconButton>
 								: null}
 
-							<Badge badgeContent={this.state.newmessages} max={999} color="secondary" onClick={this.openChat}>
+							<Badge badgeContent={this.state.newmessages} max={999} color="secondary" onClick={this.openChat} title="Open chat">
 								<IconButton style={{ color: "#424242" }} onClick={this.openChat}>
 									<ChatIcon />
 								</IconButton>
@@ -514,7 +514,7 @@ class Video extends Component {
 
 						<div className="container">
 							<div style={{ paddingTop: "20px" }}>
-								<Input value={window.location.href} disable="true"></Input>
+								<Input value={window.location.href} disable="true" style={{ "width": '100%' }}></Input>
 								<Button style={{backgroundColor: "#3f51b5",color: "whitesmoke",marginLeft: "20px",
 									marginTop: "10px",width: "120px",fontSize: "10px"
 								}} onClick={this.copyUrl}>Copy invite link</Button>
