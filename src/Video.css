@@ -38,7 +38,7 @@ body {
     height: auto;
 }
 
-#my-video {
+.my-video {
     border-style: solid;
     border-color: #bdbdbd;
     margin: 110px;
@@ -52,4 +52,8 @@ body {
     overflow: auto;
     max-height: fit-content;
     max-width: fit-content; */
+}
+
+.preview {
+    max-width: 50%;
 }

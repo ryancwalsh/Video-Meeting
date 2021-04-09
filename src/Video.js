@@ -200,6 +200,7 @@ class Video extends Component {
 		}
 
 		stream.getTracks().forEach(track => track.onended = () => {
+			console.log({ track });
 			this.setState({
 				screen: false,
 			}, () => {
@@ -218,6 +219,7 @@ class Video extends Component {
 	}
 
 	gotMessageFromServer = (fromId, message) => {
+		console.log('gotMessageFromServer', { fromId, message });
 		var signal = JSON.parse(message)
 
 		if (fromId !== socketId) {
@@ -476,8 +478,7 @@ class Video extends Component {
 						</div>
 
 						<div style={{ justifyContent: "center", textAlign: "center", paddingTop: "40px" }}>
-							<video id="my-video" ref={this.localVideoref} autoPlay muted style={{
-								borderStyle: "solid",borderColor: "#bdbdbd",objectFit: "fill",width: "60%",height: "30%"}}></video>
+							<video className="my-video preview" ref={this.localVideoref} autoPlay muted></video>
 						</div>
 					</div>
 					:
@@ -534,7 +535,7 @@ class Video extends Component {
 							</div>
 
 							<Row id="main" className="flex-container" style={{ margin: 0, padding: 0 }}>
-								<video id="my-video" ref={this.localVideoref} autoPlay muted></video>
+								<video className="my-video" ref={this.localVideoref} autoPlay muted></video>
 							</Row>
 						</div>
 					</div>
