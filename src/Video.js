@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import io from 'socket.io-client'
-import faker from "faker"
+// import faker from "faker"
 
 import {IconButton, Badge, Input, Button} from '@material-ui/core'
 import VideocamIcon from '@material-ui/icons/Videocam'
@@ -52,7 +52,7 @@ class Video extends Component {
 			message: "",
 			newmessages: 0,
 			askForUsername: true,
-			username: '' // faker.internet.userName(), // TODO: Create a "generate a username for me" feature
+			username: 'PC' // faker.internet.userName(), // TODO: Create a "generate a username for me" feature
 		}
 		connections = {}
 
@@ -82,9 +82,9 @@ class Video extends Component {
 						this.localVideoref.current.srcObject = stream
 					})
 					.then((stream) => {})
-					.catch((e) => console.log(e))
+					.catch((e) => console.error(e))
 			}
-		} catch(e) { console.log(e) }
+		} catch(e) { console.error(e) }
 	}
 
 	getMedia = () => {
@@ -102,7 +102,7 @@ class Video extends Component {
 			navigator.mediaDevices.getUserMedia({ video: this.state.video, audio: this.state.audio })
 				.then(this.getUserMediaSuccess)
 				.then((stream) => {})
-				.catch((e) => console.log(e))
+				.catch((e) => console.error(e))
 		} else {
 			try {
 				let tracks = this.localVideoref.current.srcObject.getTracks()
@@ -114,7 +114,7 @@ class Video extends Component {
 	getUserMediaSuccess = (stream) => {
 		try {
 			window.localStream.getTracks().forEach(track => track.stop())
-		} catch(e) { console.log(e) }
+		} catch(e) { console.error(e) }
 
 		window.localStream = stream
 		this.localVideoref.current.srcObject = stream
@@ -129,7 +129,7 @@ class Video extends Component {
 					.then(() => {
 						socket.emit('signal', id, JSON.stringify({ 'sdp': connections[id].localDescription }))
 					})
-					.catch(e => console.log(e))
+					.catch(e => console.error(e))
 			})
 		}
 
@@ -141,7 +141,7 @@ class Video extends Component {
 				try {
 					let tracks = this.localVideoref.current.srcObject.getTracks()
 					tracks.forEach(track => track.stop())
-				} catch(e) { console.log(e) }
+				} catch(e) { console.error(e) }
 
 				let blackSilence = (...args) => new MediaStream([this.black(...args), this.silence()])
 				window.localStream = blackSilence()
@@ -155,7 +155,7 @@ class Video extends Component {
 							.then(() => {
 								socket.emit('signal', id, JSON.stringify({ 'sdp': connections[id].localDescription }))
 							})
-							.catch(e => console.log(e))
+							.catch(e => console.error(e))
 					})
 				}
 			})
@@ -168,7 +168,7 @@ class Video extends Component {
 				navigator.mediaDevices.getDisplayMedia({ video: true, audio: true })
 					.then(this.getDislayMediaSuccess)
 					.then((stream) => {})
-					.catch((e) => console.log(e))
+					.catch((e) => console.error(e))
 			}
 		}
 	}
@@ -176,7 +176,7 @@ class Video extends Component {
 	getDislayMediaSuccess = (stream) => {
 		try {
 			window.localStream.getTracks().forEach(track => track.stop())
-		} catch(e) { console.log(e) }
+		} catch(e) { console.error(e) }
 
 		window.localStream = stream
 		this.localVideoref.current.srcObject = stream
@@ -191,7 +191,7 @@ class Video extends Component {
 					.then(() => {
 						socket.emit('signal', id, JSON.stringify({ 'sdp': connections[id].localDescription }))
 					})
-					.catch(e => console.log(e))
+					.catch(e => console.error(e))
 			})
 		}
 
@@ -202,7 +202,7 @@ class Video extends Component {
 				try {
 					let tracks = this.localVideoref.current.srcObject.getTracks()
 					tracks.forEach(track => track.stop())
-				} catch(e) { console.log(e) }
+				} catch(e) { console.error(e) }
 
 				let blackSilence = (...args) => new MediaStream([this.black(...args), this.silence()])
 				window.localStream = blackSilence()
@@ -223,14 +223,14 @@ class Video extends Component {
 						connections[fromId].createAnswer().then((description) => {
 							connections[fromId].setLocalDescription(description).then(() => {
 								socket.emit('signal', fromId, JSON.stringify({ 'sdp': connections[fromId].localDescription }))
-							}).catch(e => console.log(e))
-						}).catch(e => console.log(e))
+							}).catch(e => console.error(e))
+						}).catch(e => console.error(e))
 					}
-				}).catch(e => console.log(e))
+				}).catch(e => console.error(e))
 			}
 
 			if (signal.ice) {
-				connections[fromId].addIceCandidate(new RTCIceCandidate(signal.ice)).catch(e => console.log(e))
+				connections[fromId].addIceCandidate(new RTCIceCandidate(signal.ice)).catch(e => console.error(e))
 			}
 		}
 	}
@@ -352,7 +352,7 @@ class Video extends Component {
 								.then(() => {
 									socket.emit('signal', id2, JSON.stringify({ 'sdp': connections[id2].localDescription }))
 								})
-								.catch(e => console.log(e))
+								.catch(e => console.error(e))
 						})
 					}
 				}
@@ -458,8 +458,10 @@ class Video extends Component {
 						<div style={{background: "white", width: "30%", height: "auto", padding: "20px", minWidth: "400px",
 								textAlign: "center", margin: "auto", marginTop: "50px", justifyContent: "center"}}>
 							<p style={{ margin: 0, fontWeight: "bold", paddingRight: "50px" }}>What is your name?</p>
-							<Input placeholder="Username" value={this.state.username} onChange={e => this.handleUsername(e)} />
-							<Button variant="contained" color="primary" onClick={this.connect} style={{ margin: "20px" }}>Connect</Button>
+							<form onSubmit={this.connect}>
+								<Input placeholder="Username" value={this.state.username} onChange={e => this.handleUsername(e)} />
+								<Button variant="contained" color="primary" style={{ margin: "20px" }} type="submit">Connect</Button>
+							</form>
 						</div>
 
 						<div style={{ justifyContent: "center", textAlign: "center", paddingTop: "40px" }}>
@@ -521,9 +523,7 @@ class Video extends Component {
 							</div>
 
 							<Row id="main" className="flex-container" style={{ margin: 0, padding: 0 }}>
-								<video id="my-video" ref={this.localVideoref} autoPlay muted style={{
-									borderStyle: "solid",borderColor: "#bdbdbd",margin: "10px",objectFit: "fill",
-									width: "100%",height: "100%"}}></video>
+								<video id="my-video" ref={this.localVideoref} autoPlay muted></video>
 							</Row>
 						</div>
 					</div>

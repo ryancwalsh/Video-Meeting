@@ -37,3 +37,11 @@ body {
     width: 100%;
     height: auto;
 }
+
+#my-video {
+    border-style: "solid";
+    border-color: "#bdbdbd";
+    margin: "10px";
+    width: "100%";
+    height: "100%";
+}

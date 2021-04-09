@@ -25,7 +25,10 @@ Try Video Meeting here [video.sebastienbiollo.com](https://video.sebastienbiollo
 
 ### TODO
 
-1. Fix aspect ratio of video
-1. Split Video.js into smaller files
-1. Set up Prettier and Eslint
+1. Test 2-3 participants
+1. Move to RedwoodPlus
+    1. Set up Prettier and Eslint
+    1. Make deployable on Netlify
+    1. Split Video.js into smaller files
 1. Use cookie to save username / session
+1. Improve styles
