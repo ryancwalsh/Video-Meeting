@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import io from 'socket.io-client'
-// import faker from "faker"
+import faker from "faker"
 
 import {IconButton, Badge, Input, Button} from '@material-ui/core'
 import VideocamIcon from '@material-ui/icons/Videocam'
@@ -24,7 +24,7 @@ const server_url = process.env.SERVER_URL;
 
 var connections = {}
 const peerConnectionConfig = {
-	'iceServers': [
+	'iceServers': [ // https://stackoverflow.com/a/20134888/470749
 		// { 'urls': 'stun:stun.services.mozilla.com' },
 		{ 'urls': 'stun:stun.l.google.com:19302' },
 	]
@@ -33,6 +33,7 @@ var socket = null
 var socketId = null
 var elms = 0
 
+const randomUsername = faker.name.firstName(); // https://www.npmjs.com/package/faker // TODO: Use value from cookie instead if present.
 class Video extends Component {
 	constructor(props) {
 		super(props)
@@ -52,7 +53,7 @@ class Video extends Component {
 			message: "",
 			newmessages: 0,
 			askForUsername: true,
-			username: 'PC' // faker.internet.userName(), // TODO: Create a "generate a username for me" feature
+			username: '', 
 		}
 		connections = {}
 
@@ -400,7 +401,13 @@ class Video extends Component {
 		}
 	}
 
-	handleUsername = (e) => this.setState({ username: e.target.value })
+	handleUsername = (e) => {
+		let username = e.target.value;
+		if (!username) {
+			username = randomUsername;
+		}
+		this.setState({ username })
+	}
 
 	sendMessage = () => {
 		socket.emit('chat-message', this.state.message, this.state.username)
@@ -459,8 +466,9 @@ class Video extends Component {
 								textAlign: "center", margin: "auto", marginTop: "50px", justifyContent: "center"}}>
 							<p style={{ margin: 0, fontWeight: "bold", paddingRight: "50px" }}>What is your name?</p>
 							<form onSubmit={this.connect}>
-								<Input placeholder="Username" value={this.state.username} onChange={e => this.handleUsername(e)} />
+								<Input placeholder={randomUsername} value={this.state.username} onChange={e => this.handleUsername(e)} />
 								<Button variant="contained" color="primary" style={{ margin: "20px" }} type="submit">Connect</Button>
+								<p>If you don't provide your name, this random one will be used.</p>
 							</form>
 						</div>
 
