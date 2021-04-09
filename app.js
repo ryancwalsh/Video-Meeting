@@ -6,6 +6,9 @@ const bodyParser = require('body-parser')
 const path = require("path")
 var xss = require("xss")
 
+// ----------------------------------------------------------------
+
+
 var server = http.createServer(app)
 var io = require('socket.io')(server)
 
@@ -20,13 +23,13 @@ if(process.env.NODE_ENV==='production'){
 }
 app.set('port', (process.env.PORT || 4001))
 
-sanitizeString = (str) => {
+let sanitizeString = (str) => {
 	return xss(str)
 }
 
-connections = {}
-messages = {}
-timeOnline = {}
+let connections = {}
+let messages = {}
+let timeOnline = {}
 
 io.on('connection', (socket) => {
 
