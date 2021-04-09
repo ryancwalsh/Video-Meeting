@@ -315,7 +315,7 @@ class Video extends Component {
 							let video = document.createElement('video')
 
 							let css = {minWidth: cssMesure.minWidth, minHeight: cssMesure.minHeight, maxHeight: "100%", margin: "10px",
-								borderStyle: "solid", borderColor: "#bdbdbd", objectFit: "fill"}
+								borderStyle: "solid", borderColor: "#bdbdbd", objectFit: "fill"} // TODO: Move these to SCSS
 							for(let i in css) video.style[i] = css[i]
 
 							video.style.setProperty("width", cssMesure.width)
@@ -443,14 +443,14 @@ class Video extends Component {
 	}
 
 	render() {
-		if(this.isChrome() === false){
-			return (
-				<div style={{background: "white", width: "30%", height: "auto", padding: "20px", minWidth: "400px",
-						textAlign: "center", margin: "auto", marginTop: "50px", justifyContent: "center"}}>
-					<h1>Sorry, this works only with Google Chrome</h1>
-				</div>
-			)
-		}
+		// if(this.isChrome() === false){
+		// 	return (
+		// 		<div style={{background: "white", width: "30%", height: "auto", padding: "20px", minWidth: "400px",
+		// 				textAlign: "center", margin: "auto", marginTop: "50px", justifyContent: "center"}}>
+		// 			<h1>Sorry, this works only with Google Chrome</h1>
+		// 		</div>
+		// 	)
+		// }
 		return (
 			<div>
 				{this.state.askForUsername === true ?

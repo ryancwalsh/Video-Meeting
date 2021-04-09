@@ -31,4 +31,5 @@ Try Video Meeting here [video.sebastienbiollo.com](https://video.sebastienbiollo
     1. Make deployable on Netlify
     1. Split Video.js into smaller files
 1. Use cookie to save username / session
+1. Disable video by default (but allow optional preview before starting call)
 1. Improve styles
