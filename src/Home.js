@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import { Input, Button } from '@material-ui/core';
 import "./Home.css"
 
+const randomMeetingCode = Math.random().toString(36).substring(2, 10); // TODO: Ensure that these are all readable characters.
+
 class Home extends Component {
   	constructor (props) {
 		super(props)
@@ -10,15 +12,17 @@ class Home extends Component {
 		}
 	}
 
-	handleChange = (e) => this.setState({ url: e.target.value })
+	handleChange = (event) => this.setState({ url: event.target.value })
 
-	join = () => {
+	join = (event) => {
+		event.preventDefault();
 		if (this.state.url !== "") {
 			const url = this.state.url.split("/")
 			window.location.href = `/${url[url.length-1]}`
 		} else {
-			const url = Math.random().toString(36).substring(2, 7)
-			window.location.href = `/${url}`
+			const url = randomMeetingCode;
+			console.log({ randomMeetingCode, event });
+			window.location.href = `/${url}`;
 		}
 	}
 
@@ -36,9 +40,11 @@ class Home extends Component {
 					textAlign: "center", margin: "auto", marginTop: "100px"
 				}}>
 					<p style={{ margin: 0, fontWeight: "bold", paddingRight: "50px" }}>Start or join a meeting:</p>
-					<p>Choose a meeting name, which will be used as the path in the URL</p>
-					<Input placeholder="Meeting nickname" onChange={e => this.handleChange(e)} />
-					<Button variant="contained" color="primary" onClick={this.join} style={{ margin: "20px" }}>Go</Button>
+					<p>Optionally provide a meeting ID (to join an existing meeting), or proceeding will start a new meeting.</p>
+					<form onSubmit={this.join}>
+						<Input placeholder={randomMeetingCode} onChange={event => this.handleChange(event)} />
+						<Button variant="contained" color="primary" style={{ margin: "20px" }} type="submit">Go</Button>
+					</form>
 				</div>
 			</div>
 		)

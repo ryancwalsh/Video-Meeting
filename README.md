@@ -4,7 +4,7 @@ Developed with ReactJS, Node.js, SocketIO.
 
 ![Website](https://i.imgur.com/HhZD01o.jpg)
 
-### Website
+### Demo
 Try Video Meeting here [video.sebastienbiollo.com](https://video.sebastienbiollo.com)
 
 
@@ -33,3 +33,4 @@ Try Video Meeting here [video.sebastienbiollo.com](https://video.sebastienbiollo
 1. Use cookie to save username / session
 1. Disable video by default (but allow optional preview before starting call)
 1. Improve styles
+1. Convert to TypeScript
