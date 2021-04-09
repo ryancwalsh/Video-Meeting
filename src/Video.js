@@ -34,6 +34,9 @@ var socketId = null
 var elms = 0
 
 const randomUsername = faker.name.firstName(); // https://www.npmjs.com/package/faker // TODO: Use value from cookie instead if present.
+
+const { mediaDevices } = navigator;
+console.log({ navigator, mediaDevices });
 class Video extends Component {
 	constructor(props) {
 		super(props)
@@ -62,22 +65,22 @@ class Video extends Component {
 
 	getPermissions = async () => {
 		try{
-			await navigator.mediaDevices.getUserMedia({ video: true })
+			await mediaDevices.getUserMedia({ video: true })
 				.then(() => this.videoAvailable = true)
 				.catch(() => this.videoAvailable = false)
 
-			await navigator.mediaDevices.getUserMedia({ audio: true })
+			await mediaDevices.getUserMedia({ audio: true })
 				.then(() => this.audioAvailable = true)
 				.catch(() => this.audioAvailable = false)
 
-			if (navigator.mediaDevices.getDisplayMedia) {
+			if (mediaDevices.getDisplayMedia) {
 				this.setState({ screenAvailable: true })
 			} else {
 				this.setState({ screenAvailable: false })
 			}
 
 			if (this.videoAvailable || this.audioAvailable) {
-				navigator.mediaDevices.getUserMedia({ video: this.videoAvailable, audio: this.audioAvailable })
+				mediaDevices.getUserMedia({ video: this.videoAvailable, audio: this.audioAvailable })
 					.then((stream) => {
 						window.localStream = stream
 						this.localVideoref.current.srcObject = stream
@@ -100,7 +103,7 @@ class Video extends Component {
 
 	getUserMedia = () => {
 		if ((this.state.video && this.videoAvailable) || (this.state.audio && this.audioAvailable)) {
-			navigator.mediaDevices.getUserMedia({ video: this.state.video, audio: this.state.audio })
+			mediaDevices.getUserMedia({ video: this.state.video, audio: this.state.audio })
 				.then(this.getUserMediaSuccess)
 				.then((stream) => {})
 				.catch((e) => console.error(e))
@@ -165,8 +168,8 @@ class Video extends Component {
 
 	getDislayMedia = () => {
 		if (this.state.screen) {
-			if (navigator.mediaDevices.getDisplayMedia) {
-				navigator.mediaDevices.getDisplayMedia({ video: true, audio: true })
+			if (mediaDevices.getDisplayMedia) {
+				mediaDevices.getDisplayMedia({ video: true, audio: true })
 					.then(this.getDislayMediaSuccess)
 					.then((stream) => {})
 					.catch((e) => console.error(e))
