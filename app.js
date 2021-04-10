@@ -1,3 +1,4 @@
+// require('dotenv').config(); // https://www.npmjs.com/package/dotenv
 const express = require('express')
 var https = require('https');
 var fs    = require('fs');
@@ -8,9 +9,17 @@ const path = require("path")
 var xss = require("xss")
 
 // ----------------------------------------------------------------
+// TODO: https://stackoverflow.com/questions/56744208/fs-readfilesync-cannot-read-file-passing-path-variable-in-nodejs#comment118494792_56744208
+// TODO: Update note in .env.example
+// const keyPath = process.env.SSL_KEY_FILE.substring(2);
+// const crtPath = process.env.SSL_CRT_FILE.substring(2);
+const keyPath = "keys/xip.io.key";
+const crtPath = "keys/xip.io.crt";
+console.log({ keyPath, crtPath });
+
 var options = { // https://nodejs.org/en/knowledge/HTTP/servers/how-to-create-a-HTTPS-server/ and https://programmerblog.net/nodejs-https-server/
-	key: fs.readFileSync("keys/xip.io.key"), // https://serversforhackers.com/c/self-signed-ssl-certificates https://github.com/ryancwalsh/xip.io-cert https://www.freecodecamp.org/news/how-to-set-up-https-locally-with-create-react-app/
-	cert: fs.readFileSync("keys/xip.io.crt")	
+	key: fs.readFileSync(keyPath), // https://serversforhackers.com/c/self-signed-ssl-certificates https://github.com/ryancwalsh/xip.io-cert https://www.freecodecamp.org/news/how-to-set-up-https-locally-with-create-react-app/
+	cert: fs.readFileSync(crtPath)
 };
 console.log({ options });
 
