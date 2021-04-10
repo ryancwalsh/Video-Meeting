@@ -1,10 +1,21 @@
 // import { HighFidelityAudio } from 'hifi-spatial-audio'; // https://github.com/highfidelity/Spatial-Audio-API-Examples/blob/main/experiments/nodejs/videochat-twilio/views/index.ejs
+// import { Point3D, HiFiCommunicator } from "hifi-spatial-audio";
 import { getNumRowsAndCols, getVirtualSpaceDimensions, clamp, linearScale } from './tools';
+
+const KJUR = require('jsrsasign');
+
+// This is your "App ID" as obtained from the High Fidelity Audio API Developer Console.
+const APP_ID = process.env.REACT_APP_HI_FI_APP_ID;
+
+// This is your "Space ID" as obtained from the High Fidelity Audio API Developer Console.
+const SPACE_ID = process.env.REACT_APP_HI_FI_SPACE_ID;
+console.log({ SPACE_ID });
+
+// This is the "App Secret" as obtained from the High Fidelity Audio API Developer Console.
+const APP_SECRET = process.env.REACT_APP_HI_FI_APP_SECRET;
 
 const HighFidelityAudio = window.HighFidelityAudio;
 
-const jwt = process.env.REACT_APP_HI_FI_JWT;
-console.log({ jwt });
 let hifiCommunicator;
 let myProvidedUserId;
 let currentParticipantProvidedUserIds = [];
@@ -32,7 +43,12 @@ function getPossiblePositions(virtualSpaceDimensions, numRows, numCols) {
     const possiblePositions = [];
     for (let i = -virtualSpaceDimensions.x / 2; i < virtualSpaceDimensions.x / 2; i += virtualSpaceDimensions.x / numCols) {
         for (let j = -virtualSpaceDimensions.y / 2; j < virtualSpaceDimensions.y / 2; j += virtualSpaceDimensions.y / numRows) {
-            possiblePositions.push(new HighFidelityAudio.Point3D({ "x": i + virtualSpaceDimensions.x / numCols / 2, "y": j + virtualSpaceDimensions.y / numRows / 2, "z": 0 }));
+            const coord = {
+                "x": i + virtualSpaceDimensions.x / numCols / 2,
+                "y": j + virtualSpaceDimensions.y / numRows / 2,
+                "z": 0
+            };
+            possiblePositions.push(new HighFidelityAudio.Point3D(coord));
         }
     }
     return possiblePositions;
@@ -61,17 +77,17 @@ function updatePositions(spaceContainer) {
     }
     const { numRows, numCols } = getNumRowsAndCols(numParticipants, containerWidth, containerHeight);
     
-    let virtualSpaceDimensions = getVirtualSpaceDimensions();
+    let virtualSpaceDimensions = getVirtualSpaceDimensions(numRows, numCols); // in meters
     const possiblePositions = getPossiblePositions(virtualSpaceDimensions, numRows, numCols);
     
     let myPosition = possiblePositions[myIndex];
-    console.log(`Possible positions:\n${JSON.stringify(possiblePositions, null, 4)}`);
-    console.log(`Number of possible positions:\n${possiblePositions.length}`);
-    console.log(`My position:\n${JSON.stringify(myPosition)}`);
-    console.log(hifiCommunicator.updateUserDataAndTransmit({
+    console.log(`${possiblePositions.length} possible positions: ${JSON.stringify(possiblePositions, null, 2)}`);
+    console.log(`My position: ${JSON.stringify(myPosition)}`);
+    const userDataUpdated = hifiCommunicator.updateUserDataAndTransmit({
         position: myPosition,
         orientationEuler: new HighFidelityAudio.OrientationEuler3D(FORWARD_ORIENTATION),
-    }));
+    });
+    console.log('updateUserDataAndTransmit', userDataUpdated);
     let eachVideoStyle = {
         "width": `${100 / numCols}%`,
         "height": `${100 / numRows}%`,
@@ -105,10 +121,38 @@ function updatePositions(spaceContainer) {
 
 /**
  * 
+ * @param {string} participantId
+ * @param {element} spaceContainer 
+ */
+export function participantConnected(participantId, spaceContainer) {
+    console.log('Participant connected', participantId);
+    const div = document.createElement('div');
+    div.id = `participantId-${participantId}`;
+    // participant.on('trackAdded', track => {
+    //     if (track.kind === 'data') {
+    //         track.on('message', data => {
+    //             console.log("Message from track:" + data);
+    //         });
+    //     }
+    // });
+    // participant.on('trackSubscribed', track => trackSubscribed(div, track));
+    // participant.on('trackUnsubscribed', trackUnsubscribed);
+    // participant.tracks.forEach(publication => {
+    //     if (publication.isSubscribed) {
+    //         trackSubscribed(div, publication.track);
+    //     }
+    // });
+    providedUserIDsToVideoElementsMap.set(participantId, spaceContainer.appendChild(div));
+    updatePositions(spaceContainer);
+}
+
+/**
+ * 
  * @param {array} receivedHiFiAudioAPIDataArray 
  * @param {element} spaceContainer 
  */
 function onNewHiFiUserDataReceived(receivedHiFiAudioAPIDataArray, spaceContainer) {
+    console.log('onNewHiFiUserDataReceived receivedHiFiAudioAPIDataArray', receivedHiFiAudioAPIDataArray);
     let newUserReceived = false;
     for (let i = 0; i < receivedHiFiAudioAPIDataArray.length; i += 1) {
         let currentProvidedVisitID = receivedHiFiAudioAPIDataArray[i].providedUserID;
@@ -123,7 +167,47 @@ function onNewHiFiUserDataReceived(receivedHiFiAudioAPIDataArray, spaceContainer
     }
 }
 
-export async function connectToHiFi(outputAudioEl, spaceContainer) {
+/**
+ * 
+ * @param {string} uniqueUsername Set this string to an arbitrary value. Its value should be unique across all clients connecting to a given Space so that other clients can identify this one.
+ * @returns {SignJWT}
+ */
+function getJwt(uniqueUsername) {
+    // https://www.highfidelity.com/api/guides/misc/getAJWT
+    console.log({ uniqueUsername });
+    try {
+        const claims = {
+            "user_id": uniqueUsername,
+            "app_id": APP_ID,
+            "space_id": SPACE_ID,
+            "admin": false
+        };
+        // console.log({ claims });
+        const oHeader = {alg: 'HS256', typ: 'JWT'};
+        const tNow = KJUR.jws.IntDate.get('now');
+        const tEnd = KJUR.jws.IntDate.get('now + 1day');
+        claims.nbf = tNow;
+        claims.iat = tNow;
+        claims.exp = tEnd;
+        const sHeader = JSON.stringify(oHeader);
+        const sPayload = JSON.stringify(claims);
+        const jwt = KJUR.jws.JWS.sign("HS256", sHeader, sPayload, APP_SECRET);
+        console.log({ jwt });
+        return jwt;
+    } catch (error) {
+        console.error(`Couldn't create JWT! Error: ${error}`);
+        return;
+    }
+}
+
+/**
+ * 
+ * @param {element} outputAudioEl 
+ * @param {element} spaceContainer 
+ * @param {string} uniqueUsername 
+ * @returns 
+ */
+export async function connectToHiFi(outputAudioEl, spaceContainer, uniqueUsername) {
     // https://github.com/highfidelity/Spatial-Audio-API-Examples/blob/main/experiments/nodejs/videochat-twilio/views/index.ejs
     // Disable the Connect button after the user clicks it so we don't double-connect.
     // connectDisconnectButton.disabled = true;
@@ -150,12 +234,14 @@ export async function connectToHiFi(outputAudioEl, spaceContainer) {
     currentParticipantProvidedUserIds = [];
     providedUserIDsToVideoElementsMap.clear();
     try {
+        const jwt = getJwt(uniqueUsername);
+        console.log({ jwt });
         let response = await hifiCommunicator.connectToHiFiAudioAPIServer(jwt); // Connect to the HiFi Audio API server!
         myProvidedUserId = response.audionetInitResponse.user_id;
         currentParticipantProvidedUserIds.push(myProvidedUserId);
         console.log(`My Provided User ID: ${myProvidedUserId}`);
     } catch (error) {
-        console.error(`Error connecting to High Fidelity: ${error}`);
+        console.error(`Error connecting to High Fidelity:`, error);
         // connectDisconnectButton.disabled = false;
         // toggleInputMuteButton.disabled = true;
         // connectDisconnectButton.innerHTML = `Connection error. Retry?`;

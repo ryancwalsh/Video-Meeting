@@ -35,7 +35,7 @@ export function getNumRowsAndCols(numParticipants, videoContainerWidth, videoCon
 
 export function getVirtualSpaceDimensions(numRows, numCols) {
     const virtualSpaceDimensions = {
-        "x": numRows / 2,
+        "x": numRows / 2, // in meters
         "y": numCols / 2,
     };
     console.log(`New virtual space dimensions (meters): ${JSON.stringify(virtualSpaceDimensions)}`);

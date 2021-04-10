@@ -14,7 +14,7 @@ import StopScreenShareIcon from '@material-ui/icons/StopScreenShare'
 import CallEndIcon from '@material-ui/icons/CallEnd'
 import ChatIcon from '@material-ui/icons/Chat'
 
-import { connectToHiFi, toggleMicInputMute } from './HiFi/helper';
+import { connectToHiFi, toggleMicInputMute, participantConnected } from './HiFi/helper';
 
 import { message } from 'antd'
 import 'antd/dist/antd.css'
@@ -145,6 +145,7 @@ class Video extends Component {
 		}
 
 		stream.getTracks().forEach(track => track.onended = () => {
+			// TODO: Reduce duplication with other section like this.
 			this.setState({
 				video: false,
 				mic: false,
@@ -207,6 +208,7 @@ class Video extends Component {
 		}
 
 		stream.getTracks().forEach(track => track.onended = () => {
+			// TODO: Reduce duplication with other section like this.
 			console.log({ track });
 			this.setState({
 				screen: false,
@@ -249,7 +251,7 @@ class Video extends Component {
 	}
 
 	 connectToSocketServer = async () => {
-		await connectToHiFi(document.getElementById('outputAudioEl'), document.getElementById('main'));
+		await connectToHiFi(document.getElementById('outputAudioEl'), document.getElementById('main'), this.state.username);
 		socket = io.connect(socketUrl, { secure: true })
 
 		socket.on('signal', this.gotMessageFromServer)
@@ -270,17 +272,19 @@ class Video extends Component {
 
 			socket.on('user-joined', (id, clients) => {
 				console.log('user-joined', { clients, connections });
+				participantConnected(id, document.getElementById('main'));
 				clients.forEach((socketListId) => {
-					connections[socketListId] = new RTCPeerConnection(peerConnectionConfig)
-					// Wait for their ice candidate       
-					connections[socketListId].onicecandidate = function (event) {
+					const connection = new RTCPeerConnection(peerConnectionConfig);
+					connections[socketListId] = connection;
+					// Wait for their ice candidate
+					connection.onicecandidate = function (event) {
 						if (event.candidate != null) {
 							socket.emit('signal', socketListId, JSON.stringify({ 'ice': event.candidate }))
 						}
 					}
 
 					// Wait for their video stream
-					connections[socketListId].onaddstream = (event) => {
+					connection.onaddstream = (event) => {
 						console.log('onaddstream', { event });
 						// TODO mute button, full screen button
 						var searchVideo = document.querySelector(`[data-socket="${socketListId}"]`)
@@ -301,11 +305,12 @@ class Video extends Component {
 
 					// Add the local video stream
 					if (window.localStream !== undefined && window.localStream !== null) {
-						connections[socketListId].addStream(window.localStream)
+						connection.addStream(window.localStream)
 					} else {
+						// TODO: Reduce duplication with other section like this.
 						let blackSilence = (...args) => new MediaStream([this.black(...args), this.silence()])
 						window.localStream = blackSilence()
-						connections[socketListId].addStream(window.localStream)
+						connection.addStream(window.localStream)
 					}
 				})
 
@@ -378,12 +383,17 @@ class Video extends Component {
 		}
 	}
 
-	handleUsername = (e) => {
-		let username = e.target.value;
+	prepareToSaveUsernameToState = (username) => {
 		if (!username) {
 			username = randomUsername;
 		}
-		this.setState({ username })
+		return { username };
+	}
+
+	handleUsername = (event) => {
+		let username = event.target.value;
+		const payload = this.prepareToSaveUsernameToState(username);
+		this.setState(payload);
 	}
 
 	sendMessage = () => {
@@ -415,7 +425,10 @@ class Video extends Component {
 		})
 	}
 
-	connect = () => this.setState({ askForUsername: false }, () => this.getMedia())
+	connect = () => {
+		const payload = this.prepareToSaveUsernameToState(this.state.username);
+		this.setState({ ...payload, askForUsername: false }, () => this.getMedia())
+	}
 
 	isChrome = function () {
 		let userAgent = (navigator && (navigator.userAgent || '')).toLowerCase()

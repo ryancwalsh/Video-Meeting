@@ -16,6 +16,8 @@
     "express": "^4.17.1",
     "faker": "^4.1.0",
     "hifi-spatial-audio": "^0.8.0",
+    "jsrsasign": "^10.1.13",
+    "jsrsasign-util": "^1.0.4",
     "nodemon": "^2.0.2",
     "react": "^16.13.1",
     "react-bootstrap": "^1.0.0",
