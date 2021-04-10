@@ -20,7 +20,14 @@ const FORWARD_ORIENTATION = {
     yawDegrees: 0,
     rollDegrees: 0
 };
-    
+
+/**
+ * 
+ * @param {object} virtualSpaceDimensions 
+ * @param {number} numRows 
+ * @param {number} numCols 
+ * @returns {array}
+ */
 function getPossiblePositions(virtualSpaceDimensions, numRows, numCols) {
     const possiblePositions = [];
     for (let i = -virtualSpaceDimensions.x / 2; i < virtualSpaceDimensions.x / 2; i += virtualSpaceDimensions.x / numCols) {
@@ -31,7 +38,13 @@ function getPossiblePositions(virtualSpaceDimensions, numRows, numCols) {
     return possiblePositions;
 }
 
-function updatePositions(videoContainerWidth, videoContainerHeight) {
+/**
+ * 
+ * @param {element} spaceContainer
+ */
+function updatePositions(spaceContainer) {
+    const containerWidth = spaceContainer.offsetWidth;
+    const containerHeight = spaceContainer.offsetHeight;
     if (!hifiCommunicator) {
         return;
     }
@@ -46,7 +59,7 @@ function updatePositions(videoContainerWidth, videoContainerHeight) {
         console.error(`Couldn't find \`myProvidedUserID\` ${myProvidedUserId} in \`currentParticipantProvidedUserIDs\`!`);
         return;
     }
-    const { numRows, numCols } = getNumRowsAndCols(numParticipants, videoContainerWidth, videoContainerHeight);
+    const { numRows, numCols } = getNumRowsAndCols(numParticipants, containerWidth, containerHeight);
     
     let virtualSpaceDimensions = getVirtualSpaceDimensions();
     const possiblePositions = getPossiblePositions(virtualSpaceDimensions, numRows, numCols);
@@ -59,8 +72,6 @@ function updatePositions(videoContainerWidth, videoContainerHeight) {
         position: myPosition,
         orientationEuler: new HighFidelityAudio.OrientationEuler3D(FORWARD_ORIENTATION),
     }));
-    // let videoContainerWidth = videoContainer.offsetWidth;
-    // let videoContainerHeight = videoContainer.offsetHeight;
     let eachVideoStyle = {
         "width": `${100 / numCols}%`,
         "height": `${100 / numRows}%`,
@@ -75,15 +86,15 @@ function updatePositions(videoContainerWidth, videoContainerHeight) {
         value.style.width = eachVideoStyle.width;
         value.style.height = eachVideoStyle.height;
         // `-1` term because we want higher `position.y` values to yield a video towards the top of the browser window
-        let topOffset = linearScale(-1 * position.y, -virtualSpaceDimensions.y / 2, virtualSpaceDimensions.y / 2, 0, videoContainerHeight) - (value.offsetHeight / 2);
-        topOffset = clamp(topOffset, 0, videoContainerHeight - value.offsetHeight);
+        let topOffset = linearScale(-1 * position.y, -virtualSpaceDimensions.y / 2, virtualSpaceDimensions.y / 2, 0, containerHeight) - (value.offsetHeight / 2);
+        topOffset = clamp(topOffset, 0, containerHeight - value.offsetHeight);
         if (numParticipants > 1) {
             value.style.top = `${topOffset}px`;
         } else {
             value.style.top = "0";
         }
-        let leftOffset = linearScale(position.x, -virtualSpaceDimensions.x / 2, virtualSpaceDimensions.x / 2, 0, videoContainerWidth) - (value.offsetWidth / 2);
-        leftOffset = clamp(leftOffset, 0, videoContainerWidth - value.offsetWidth);
+        let leftOffset = linearScale(position.x, -virtualSpaceDimensions.x / 2, virtualSpaceDimensions.x / 2, 0, containerWidth) - (value.offsetWidth / 2);
+        leftOffset = clamp(leftOffset, 0, containerWidth - value.offsetWidth);
         if (numParticipants > 1) {
             value.style.left = `${leftOffset}px`;
         } else {
@@ -92,7 +103,12 @@ function updatePositions(videoContainerWidth, videoContainerHeight) {
     });
 }
 
-function onNewHiFiUserDataReceived(receivedHiFiAudioAPIDataArray, videoContainerWidth, videoContainerHeight) {
+/**
+ * 
+ * @param {array} receivedHiFiAudioAPIDataArray 
+ * @param {element} spaceContainer 
+ */
+function onNewHiFiUserDataReceived(receivedHiFiAudioAPIDataArray, spaceContainer) {
     let newUserReceived = false;
     for (let i = 0; i < receivedHiFiAudioAPIDataArray.length; i += 1) {
         let currentProvidedVisitID = receivedHiFiAudioAPIDataArray[i].providedUserID;
@@ -103,14 +119,12 @@ function onNewHiFiUserDataReceived(receivedHiFiAudioAPIDataArray, videoContainer
     }
 
     if (newUserReceived) {
-        updatePositions(videoContainerWidth, videoContainerHeight);
+        updatePositions(spaceContainer);
     }
 }
 
-export async function connectToHiFi(outputAudioEl, videoContainer) {
+export async function connectToHiFi(outputAudioEl, spaceContainer) {
     // https://github.com/highfidelity/Spatial-Audio-API-Examples/blob/main/experiments/nodejs/videochat-twilio/views/index.ejs
-    const videoContainerWidth = videoContainer.offsetWidth;
-    const videoContainerHeight = videoContainer.offsetHeight;
     // Disable the Connect button after the user clicks it so we don't double-connect.
     // connectDisconnectButton.disabled = true;
     // connectDisconnectButton.innerHTML = `Connecting...`;
@@ -119,31 +133,29 @@ export async function connectToHiFi(outputAudioEl, videoContainer) {
     let audioMediaStream;
     try {
         audioMediaStream = await navigator.mediaDevices.getUserMedia({ audio: HighFidelityAudio.getBestAudioConstraints(), video: false });
-    } catch (e) {
+    } catch (error) {
+        console.error('connectToHiFi', error);
         return;
     }
-    // Set up the initial data for our user.
-    // They'll be standing at the origin, facing "forward".
+    // Set up the initial data for our user (who will be standing at the origin, facing "forward").
     let initialHiFiAudioAPIData = new HighFidelityAudio.HiFiAudioAPIData({
         position: new HighFidelityAudio.Point3D(zeroPoint),
         orientationEuler: new HighFidelityAudio.OrientationEuler3D(FORWARD_ORIENTATION)
     });
     HighFidelityAudio.HiFiLogger.setHiFiLogLevel(HighFidelityAudio.HiFiLogLevel.Debug);
-    // Set up our `HiFiCommunicator` object, supplying our media stream and initial user data.
-    hifiCommunicator = new HighFidelityAudio.HiFiCommunicator({
+    hifiCommunicator = new HighFidelityAudio.HiFiCommunicator({ // Set up our `HiFiCommunicator` object, supplying our media stream and initial user data.
         initialHiFiAudioAPIData: initialHiFiAudioAPIData
     });
     await hifiCommunicator.setInputAudioMediaStream(audioMediaStream);
     currentParticipantProvidedUserIds = [];
     providedUserIDsToVideoElementsMap.clear();
-    // Connect to the HiFi Audio API server!
     try {
-        let response = await hifiCommunicator.connectToHiFiAudioAPIServer(jwt);
+        let response = await hifiCommunicator.connectToHiFiAudioAPIServer(jwt); // Connect to the HiFi Audio API server!
         myProvidedUserId = response.audionetInitResponse.user_id;
         currentParticipantProvidedUserIds.push(myProvidedUserId);
         console.log(`My Provided User ID: ${myProvidedUserId}`);
-    } catch (e) {
-        console.error(`Error connecting to High Fidelity:\n${e}`);
+    } catch (error) {
+        console.error(`Error connecting to High Fidelity: ${error}`);
         // connectDisconnectButton.disabled = false;
         // toggleInputMuteButton.disabled = true;
         // connectDisconnectButton.innerHTML = `Connection error. Retry?`;
@@ -155,17 +167,18 @@ export async function connectToHiFi(outputAudioEl, videoContainer) {
     // connectDisconnectButton.innerHTML = `Disconnect`;
     // connectDisconnectButton.disabled = false;
     // toggleInputMuteButton.disabled = false;
-    // Set the `srcObject` on our `audio` DOM element to the final, mixed audio stream from the High Fidelity Audio API Server.
-    outputAudioEl.srcObject = hifiCommunicator.getOutputAudioMediaStream();
-    // We explicitly call `play()` here because certain browsers won't play the newly-set stream automatically.
-    outputAudioEl.play();
+    outputAudioEl.srcObject = hifiCommunicator.getOutputAudioMediaStream(); // Set the `srcObject` on our `audio` DOM element to the final, mixed audio stream from the High Fidelity Audio API Server.
+    outputAudioEl.play(); // We explicitly call `play()` here because certain browsers won't play the newly-set stream automatically.
     // Set up a new User Data Subscription to get User Data updates from the server.
     let newUserDataSubscription = new HighFidelityAudio.UserDataSubscription({
         // Setting `providedUserID` to `null` (or omitting it) means we will get data updates from **all** connected Users, including ourselves.
         "providedUserID": null,
         // There are other components we could subscribe to here, but we're only subscribing to Volume data updates.
-        "components": [HighFidelityAudio.AvailableUserDataSubscriptionComponents.Position, HighFidelityAudio.AvailableUserDataSubscriptionComponents.OrientationEuler],
-        "callback": (receivedHiFiAudioAPIDataArray) => onNewHiFiUserDataReceived(receivedHiFiAudioAPIDataArray, videoContainerWidth, videoContainerHeight)
+        "components": [
+            HighFidelityAudio.AvailableUserDataSubscriptionComponents.Position,
+            HighFidelityAudio.AvailableUserDataSubscriptionComponents.OrientationEuler
+        ],
+        "callback": (receivedHiFiAudioAPIDataArray) => onNewHiFiUserDataReceived(receivedHiFiAudioAPIDataArray, spaceContainer)
     });
     // Actually add the newly-constructed Data Subscription to the list of our Data Subscriptions on our `HiFiCommunicator`.
     hifiCommunicator.addUserDataSubscription(newUserDataSubscription);
@@ -182,6 +195,7 @@ export async function toggleMicInputMute() {
 }
 
 export function disconnectFromHiFi() {
+    // TODO: Figure out when/where to call this.
     console.log(`Disconnecting from High Fidelity Audio API Servers...`);
     // connectDisconnectButton.removeEventListener("click", disconnectFromHiFiAndVideoService);
     // connectDisconnectButton.addEventListener("click", connectToHiFiAndVideoService);
