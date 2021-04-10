@@ -53,7 +53,7 @@ class Video extends Component {
 
 		this.state = {
 			video: false,
-			audio: false,
+			mic: false,
 			speakers: true,
 			screen: false,
 			showModal: false,
@@ -100,7 +100,7 @@ class Video extends Component {
 	getMedia = () => {
 		this.setState({
 			video: this.videoAvailable,
-			audio: this.audioAvailable
+			mic: this.audioAvailable
 		}, () => {
 			this.getUserMedia()
 			this.connectToSocketServer()
@@ -108,7 +108,7 @@ class Video extends Component {
 	}
 
 	getUserMedia = () => {
-		if ((this.state.video && this.videoAvailable) || (this.state.audio && this.audioAvailable)) {
+		if ((this.state.video && this.videoAvailable) || (this.state.mic && this.audioAvailable)) {
 			const audio = false; // Make it always `false` regardless of mute state because audio will be handled via HiFi API.
 			mediaDevices.getUserMedia({ video: this.state.video, audio })
 				.then(this.getUserMediaSuccess)
@@ -147,7 +147,7 @@ class Video extends Component {
 		stream.getTracks().forEach(track => track.onended = () => {
 			this.setState({
 				video: false,
-				audio: false,
+				mic: false,
 			}, () => {
 				try {
 					let tracks = this.localVideoref.current.srcObject.getTracks()
@@ -346,7 +346,7 @@ class Video extends Component {
 	}
 
 	handleVideo = () => this.setState({ video: !this.state.video }, () => this.getUserMedia())
-	toggleMicInputMute = () => this.setState({ audio: !this.state.audio }, () => toggleMicInputMute())
+	toggleMicInputMute = () => this.setState({ mic: !this.state.mic }, () => toggleMicInputMute())
 		
 	toggleSpeakersOutputMute = () => this.setState({ speakers: !this.state.speakers }, () => {
 		const outputAudioEl = document.getElementById('outputAudioEl');
@@ -497,7 +497,7 @@ class Video extends Component {
 									</IconButton>
 
 									<IconButton onClick={this.toggleMicInputMute} title="Enable/disable microphone">
-										{this.state.audio === true ? <MicIcon /> : <MicOffIcon />}
+										{this.state.mic === true ? <MicIcon /> : <MicOffIcon />}
 									</IconButton>
 
 									<IconButton onClick={this.toggleSpeakersOutputMute} title="Enable/disable audio output through your speakers/headphones">
