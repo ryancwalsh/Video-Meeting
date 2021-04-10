@@ -9,7 +9,17 @@ let hifiCommunicator;
 let myProvidedUserId;
 let currentParticipantProvidedUserIds = [];
 let providedUserIDsToVideoElementsMap = new Map();
-const FORWARD_ORIENTATION = new HighFidelityAudio.OrientationEuler3D({ "pitchDegrees": 0, "yawDegrees": 0, "rollDegrees": 0 });
+let isMuted = false;
+const zeroPoint = {
+    x: 0,
+    y: 0,
+    z: 0
+};
+const FORWARD_ORIENTATION = {
+    pitchDegrees: 0,
+    yawDegrees: 0,
+    rollDegrees: 0
+};
     
 function getPossiblePositions(virtualSpaceDimensions, numRows, numCols) {
     const possiblePositions = [];
@@ -47,7 +57,7 @@ function updatePositions(videoContainerWidth, videoContainerHeight) {
     console.log(`My position:\n${JSON.stringify(myPosition)}`);
     console.log(hifiCommunicator.updateUserDataAndTransmit({
         position: myPosition,
-        orientationEuler: FORWARD_ORIENTATION,
+        orientationEuler: new HighFidelityAudio.OrientationEuler3D(FORWARD_ORIENTATION),
     }));
     // let videoContainerWidth = videoContainer.offsetWidth;
     // let videoContainerHeight = videoContainer.offsetHeight;
@@ -98,7 +108,7 @@ function onNewHiFiUserDataReceived(receivedHiFiAudioAPIDataArray, videoContainer
 }
 
 export async function connectToHiFi(outputAudioEl, videoContainer) {
-    // TODO: Honor the mute button state.
+    // https://github.com/highfidelity/Spatial-Audio-API-Examples/blob/main/experiments/nodejs/videochat-twilio/views/index.ejs
     const videoContainerWidth = videoContainer.offsetWidth;
     const videoContainerHeight = videoContainer.offsetHeight;
     // Disable the Connect button after the user clicks it so we don't double-connect.
@@ -115,8 +125,8 @@ export async function connectToHiFi(outputAudioEl, videoContainer) {
     // Set up the initial data for our user.
     // They'll be standing at the origin, facing "forward".
     let initialHiFiAudioAPIData = new HighFidelityAudio.HiFiAudioAPIData({
-        position: new HighFidelityAudio.Point3D({ "x": 0, "y": 0, "z": 0 }),
-        orientationEuler: new HighFidelityAudio.OrientationEuler3D({ "pitchDegrees": 0, "yawDegrees": 0, "rollDegrees": 0 }) // TODO: Can this be replaced with FORWARD_ORIENTATION?
+        position: new HighFidelityAudio.Point3D(zeroPoint),
+        orientationEuler: new HighFidelityAudio.OrientationEuler3D(FORWARD_ORIENTATION)
     });
     HighFidelityAudio.HiFiLogger.setHiFiLogLevel(HighFidelityAudio.HiFiLogLevel.Debug);
     // Set up our `HiFiCommunicator` object, supplying our media stream and initial user data.
@@ -159,4 +169,28 @@ export async function connectToHiFi(outputAudioEl, videoContainer) {
     });
     // Actually add the newly-constructed Data Subscription to the list of our Data Subscriptions on our `HiFiCommunicator`.
     hifiCommunicator.addUserDataSubscription(newUserDataSubscription);
+}
+
+export async function toggleMicInputMute() {
+    if (!hifiCommunicator) {
+        return;
+    }
+    if (await hifiCommunicator.setInputAudioMuted(!isMuted)) {
+        isMuted = !isMuted;
+        // toggleInputMuteButton.innerHTML = `Toggle Mute (currently ${isMuted ? "muted" : "unmuted"})`;
+    }
+}
+
+export function disconnectFromHiFi() {
+    console.log(`Disconnecting from High Fidelity Audio API Servers...`);
+    // connectDisconnectButton.removeEventListener("click", disconnectFromHiFiAndVideoService);
+    // connectDisconnectButton.addEventListener("click", connectToHiFiAndVideoService);
+    // connectDisconnectButton.disabled = false;
+    // connectDisconnectButton.innerHTML = `Connect`;
+    // toggleInputMuteButton.disabled = true;
+    // isMuted = false;
+    if (hifiCommunicator) {
+        hifiCommunicator.disconnectFromHiFiAudioAPIServer();
+    }
+    hifiCommunicator = null;
 }

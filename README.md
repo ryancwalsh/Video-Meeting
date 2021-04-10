@@ -26,7 +26,6 @@ Try Video Meeting here [video.sebastienbiollo.com](https://video.sebastienbiollo
 ### TODO
 
 1. Test spatial audio with different numbers of participants and layouts
-1. Honor the mute button's state!!
 1. Host HighFidelityAudio JS file locally (so as to pin the version), ideally via import in node_modules.
 1. Move to RedwoodPlus
     1. Set up Prettier and Eslint

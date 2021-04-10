@@ -7,12 +7,14 @@ import VideocamIcon from '@material-ui/icons/Videocam'
 import VideocamOffIcon from '@material-ui/icons/VideocamOff'
 import MicIcon from '@material-ui/icons/Mic'
 import MicOffIcon from '@material-ui/icons/MicOff'
+import VolumeUpIcon from '@material-ui/icons/VolumeUp' // https://fonts.google.com/icons?selected=Material+Icons&icon.query=speaker
+import VolumeOffIcon from '@material-ui/icons/VolumeOff'
 import ScreenShareIcon from '@material-ui/icons/ScreenShare'
 import StopScreenShareIcon from '@material-ui/icons/StopScreenShare'
 import CallEndIcon from '@material-ui/icons/CallEnd'
 import ChatIcon from '@material-ui/icons/Chat'
 
-import { connectToHiFi } from './HiFi/helper';
+import { connectToHiFi, toggleMicInputMute } from './HiFi/helper';
 
 import { message } from 'antd'
 import 'antd/dist/antd.css'
@@ -52,6 +54,7 @@ class Video extends Component {
 		this.state = {
 			video: false,
 			audio: false,
+			speakers: true,
 			screen: false,
 			showModal: false,
 			screenAvailable: false,
@@ -343,7 +346,15 @@ class Video extends Component {
 	}
 
 	handleVideo = () => this.setState({ video: !this.state.video }, () => this.getUserMedia())
-	handleAudio = () => this.setState({ audio: !this.state.audio }, () => this.getUserMedia())
+	toggleMicInputMute = () => this.setState({ audio: !this.state.audio }, () => toggleMicInputMute())
+		
+	toggleSpeakersOutputMute = () => this.setState({ speakers: !this.state.speakers }, () => {
+		const outputAudioEl = document.getElementById('outputAudioEl');
+		outputAudioEl.muted = !outputAudioEl.muted;
+		console.log(`Set output mute status to \`${outputAudioEl.muted}\``);
+		// toggleOutputMuteButton.innerHTML = `Toggle Output Mute (currently ${outputAudioEl.muted ? "muted" : "unmuted"})`;
+	})
+
 	handleScreen = () => this.setState({ screen: !this.state.screen }, () => this.getDisplayMedia())
 
 	handleEndCall = () => {
@@ -438,8 +449,9 @@ class Video extends Component {
 							</form>
 						</div>
 
-						<div style={{ justifyContent: "center", textAlign: "center", paddingTop: "40px" }}>
-							<video className="my-video preview" ref={this.localVideoref} autoPlay muted></video>
+						<div style={{ justifyContent: "center", textAlign: "center" }}>
+							Preview of your webcam:
+							<video className="my-video-preview" ref={this.localVideoref} autoPlay muted></video>
 						</div>
 					</div>
 					:
@@ -476,26 +488,30 @@ class Video extends Component {
 								<div id="main" className="other-participants"></div>
 
 								<div className="control-panel">
-									<IconButton style={{ color: "#424242" }} onClick={this.handleVideo} title="Enable/disable camera">
-										{(this.state.video === true) ? <VideocamIcon /> : <VideocamOffIcon />}
-									</IconButton>
-
 									<IconButton style={{ color: "#f44336" }} onClick={this.handleEndCall} title="Enable/disable call">
 										<CallEndIcon />
 									</IconButton>
+									
+									<IconButton onClick={this.handleVideo} title="Enable/disable camera">
+										{(this.state.video === true) ? <VideocamIcon /> : <VideocamOffIcon />}
+									</IconButton>
 
-									<IconButton style={{ color: "#424242" }} onClick={this.handleAudio} title="Enable/disable microphone">
+									<IconButton onClick={this.toggleMicInputMute} title="Enable/disable microphone">
 										{this.state.audio === true ? <MicIcon /> : <MicOffIcon />}
 									</IconButton>
 
+									<IconButton onClick={this.toggleSpeakersOutputMute} title="Enable/disable audio output through your speakers/headphones">
+										{this.state.speakers === true ? <VolumeUpIcon /> : <VolumeOffIcon />}
+									</IconButton>
+
 									{this.state.screenAvailable === true ?
-										<IconButton style={{ color: "#424242" }} onClick={this.handleScreen} title="Enable/disable screenshare">
+										<IconButton onClick={this.handleScreen} title="Enable/disable screenshare">
 											{this.state.screen === true ? <ScreenShareIcon /> : <StopScreenShareIcon />}
 										</IconButton>
 										: null}
 
 									<Badge badgeContent={this.state.newmessages} max={999} color="secondary" onClick={this.openChat} title="Open chat">
-										<IconButton style={{ color: "#424242" }} onClick={this.openChat}>
+										<IconButton onClick={this.openChat}>
 											<ChatIcon />
 										</IconButton>
 									</Badge>

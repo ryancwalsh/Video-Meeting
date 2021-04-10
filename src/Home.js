@@ -32,23 +32,15 @@ class Home extends Component {
 	render() {
 		return (
 			<div className="container2">
-								
-				<div>
-					<h1 style={{ fontSize: "45px" }}>Video Meeting</h1>
-					
-				</div>
-
 				<div>
 					<form onSubmit={this.createNewMeeting} style={{
-					background: "white", width: "30%", height: "auto", padding: "20px", minWidth: "400px",
-					textAlign: "center", margin: "auto", marginTop: "100px"
+					background: "white",  padding: "20px", margin: "10px", textAlign: "center"
 				}}>
 						<Button variant="contained" color="primary" style={{ margin: "20px" }} type="submit">Create New Meeting</Button>
 					</form>
 					<p>or</p>
 					<form onSubmit={this.join} style={{
-					background: "white", width: "30%", height: "auto", padding: "20px", minWidth: "400px",
-					textAlign: "center", margin: "auto", marginTop: "100px"
+					background: "white", padding: "20px", margin: "10px", textAlign: "center"
 					}}>
 						<p>Join an existing meeting by providing its ID here:</p>
 						<Input placeholder={randomMeetingCode} onChange={event => this.handleChange(event)} required />
