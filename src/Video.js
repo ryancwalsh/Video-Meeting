@@ -20,10 +20,9 @@ import Modal from 'react-bootstrap/Modal'
 import 'bootstrap/dist/css/bootstrap.css'
 import "./Video.css"
 
-const server_url = 'https://rcw.192.168.1.103.xip.io:4001'; // TODO: process.env.SERVER_URL;
-// const server_url = process.env.SERVER_URL;
+const socketUrl = process.env.REACT_APP_SOCKET_URL; // https://stackoverflow.com/a/56668716/470749
 
-console.log({ server_url });
+console.log({ socketUrl });
 
 var connections = {}
 const peerConnectionConfig = {
@@ -279,7 +278,7 @@ class Video extends Component {
 	}
 
 	connectToSocketServer = () => {
-		socket = io.connect(server_url, { secure: true })
+		socket = io.connect(socketUrl, { secure: true })
 
 		socket.on('signal', this.gotMessageFromServer)
 
