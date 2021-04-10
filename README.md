@@ -25,7 +25,6 @@ Try Video Meeting here [video.sebastienbiollo.com](https://video.sebastienbiollo
 
 ### TODO
 
-1. Test 3+ participants
 1. Test spatial audio
 1. Move to RedwoodPlus
     1. Set up Prettier and Eslint

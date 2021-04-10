@@ -3,16 +3,17 @@ body {
 }
 
 .flex-container {
-    height: calc(100% - 150px);
-    width: 100%;
+    /* height: calc(100% - 150px);
+    width: 100%; */
     /* margin: 0 auto; */
+    height: 100%;
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
 }
 
-.container {
+.container {    
     height: 100vh;
     width: 100vw;
     max-width: 100vw;
@@ -30,25 +31,17 @@ body {
     text-align: center;
 }
 
-.btn-down {
-    z-index: 2;
-    position: fixed; 
-    bottom: 0px;
-    width: 100%;
-    height: auto;
-}
-
 video {
     border: 1px solid black;
+    max-width: 100%;    
 }
 
 video.my-video {
     position: absolute;
-    bottom: 0;
+    top: 0;
     right: 0;
-    margin: 110px;
     width: 200px;
-    height: 200px;
+    max-width: 40%;
     
     /* Make resizeable: */
     /* min-height: 30px;
@@ -61,10 +54,15 @@ video.my-video {
 
 video.other-participant {
     display: flex;
-    max-height: 100%;
     margin: 10px;
+    max-height: 50vh;
 }
 
 .preview {
     max-width: 50%;
+}
+
+.control-panel {
+    /* margin-top: auto;
+    margin-bottom: 0; */
 }

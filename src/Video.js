@@ -33,7 +33,6 @@ const peerConnectionConfig = {
 }
 var socket = null
 var socketId = null
-var elms = 0
 
 const randomUsername = faker.name.firstName(); // https://www.npmjs.com/package/faker // TODO: Use value from cookie instead if present.
 
@@ -243,40 +242,6 @@ class Video extends Component {
 		}
 	}
 
-	changeCssVideos = (main) => {
-		let widthMain = main.offsetWidth
-		let minWidth = "30%"
-		if ((widthMain * 30 / 100) < 300) {
-			minWidth = "300px"
-		}
-		let minHeight = "40%"
-
-		let height = String(100 / elms) + "%"
-		let width = ""
-		if(elms === 0 || elms === 1) {
-			width = "100%"
-			height = "100%"
-		} else if (elms === 2) {
-			width = "45%"
-			height = "100%"
-		} else if (elms === 3 || elms === 4) {
-			width = "35%"
-			height = "50%"
-		} else {
-			width = String(100 / elms) + "%"
-		}
-
-		let videos = main.querySelectorAll("video")
-		for (let a = 0; a < videos.length; ++a) {
-			videos[a].style.minWidth = minWidth
-			videos[a].style.minHeight = minHeight
-			videos[a].style.setProperty("width", width)
-			videos[a].style.setProperty("height", height)
-		}
-
-		return {minWidth, minHeight, width, height}
-	}
-
 	connectToSocketServer = () => {
 		socket = io.connect(socketUrl, { secure: true })
 
@@ -292,11 +257,7 @@ class Video extends Component {
 			socket.on('user-left', (id) => {
 				let video = document.querySelector(`[data-socket="${id}"]`)
 				if (video !== null) {
-					elms--
 					video.parentNode.removeChild(video)
-
-					let main = document.getElementById('main')
-					this.changeCssVideos(main)
 				}
 			})
 
@@ -316,25 +277,11 @@ class Video extends Component {
 						console.log('onaddstream', { event });
 						// TODO mute button, full screen button
 						var searchVideo = document.querySelector(`[data-socket="${socketListId}"]`)
-						if (searchVideo !== null) { // if i don't do this check it make an empyt square
+						if (searchVideo !== null) { // Without this check, it would be an empty square.
 							searchVideo.srcObject = event.stream
 						} else {
-							elms = clients.length
 							let main = document.getElementById('main')
-							// let cssMesure = this.changeCssVideos(main)
-
 							let video = document.createElement('video')
-
-							// let css = {
-							// 	minWidth: cssMesure.minWidth,
-							// 	minHeight: cssMesure.minHeight
-							// } // TODO: improve
-							// for (let i in css) {
-							// 	video.style[i] = css[i];
-							// }
-
-							// video.style.setProperty("width", cssMesure.width)
-							// video.style.setProperty("height", cssMesure.height)
 							video.classList.add('other-participant');
 							video.setAttribute('data-socket', socketListId)
 							video.srcObject = event.stream
@@ -493,31 +440,7 @@ class Video extends Component {
 					</div>
 					:
 					<div>
-						<div className="btn-down" style={{ backgroundColor: "whitesmoke", color: "whitesmoke", textAlign: "center" }}>
-							<IconButton style={{ color: "#424242" }} onClick={this.handleVideo} title="Enable/disable camera">
-								{(this.state.video === true) ? <VideocamIcon /> : <VideocamOffIcon />}
-							</IconButton>
-
-							<IconButton style={{ color: "#f44336" }} onClick={this.handleEndCall} title="Enable/disable call">
-								<CallEndIcon />
-							</IconButton>
-
-							<IconButton style={{ color: "#424242" }} onClick={this.handleAudio} title="Enable/disable microphone">
-								{this.state.audio === true ? <MicIcon /> : <MicOffIcon />}
-							</IconButton>
-
-							{this.state.screenAvailable === true ?
-								<IconButton style={{ color: "#424242" }} onClick={this.handleScreen} title="Enable/disable screenshare">
-									{this.state.screen === true ? <ScreenShareIcon /> : <StopScreenShareIcon />}
-								</IconButton>
-								: null}
-
-							<Badge badgeContent={this.state.newmessages} max={999} color="secondary" onClick={this.openChat} title="Open chat">
-								<IconButton style={{ color: "#424242" }} onClick={this.openChat}>
-									<ChatIcon />
-								</IconButton>
-							</Badge>
-						</div>
+						
 
 						<Modal show={this.state.showModal} onHide={this.closeChat} style={{ zIndex: "999999" }}>
 							<Modal.Header closeButton>
@@ -544,8 +467,35 @@ class Video extends Component {
 								}} onClick={this.copyUrl}>Copy invite link</Button>
 							</div>
 
-							<Row id="main" className="flex-container" style={{ margin: 0, padding: 0 }}>
+							<Row className="flex-container" style={{ margin: 0, padding: 0 }}>
 								<video className="my-video" ref={this.localVideoref} autoPlay muted></video>
+								<div id="main" className="other-participants"></div>
+
+								<div className="control-panel">
+									<IconButton style={{ color: "#424242" }} onClick={this.handleVideo} title="Enable/disable camera">
+										{(this.state.video === true) ? <VideocamIcon /> : <VideocamOffIcon />}
+									</IconButton>
+
+									<IconButton style={{ color: "#f44336" }} onClick={this.handleEndCall} title="Enable/disable call">
+										<CallEndIcon />
+									</IconButton>
+
+									<IconButton style={{ color: "#424242" }} onClick={this.handleAudio} title="Enable/disable microphone">
+										{this.state.audio === true ? <MicIcon /> : <MicOffIcon />}
+									</IconButton>
+
+									{this.state.screenAvailable === true ?
+										<IconButton style={{ color: "#424242" }} onClick={this.handleScreen} title="Enable/disable screenshare">
+											{this.state.screen === true ? <ScreenShareIcon /> : <StopScreenShareIcon />}
+										</IconButton>
+										: null}
+
+									<Badge badgeContent={this.state.newmessages} max={999} color="secondary" onClick={this.openChat} title="Open chat">
+										<IconButton style={{ color: "#424242" }} onClick={this.openChat}>
+											<ChatIcon />
+										</IconButton>
+									</Badge>
+								</div>
 							</Row>
 						</div>
 					</div>
