@@ -12,6 +12,8 @@ import StopScreenShareIcon from '@material-ui/icons/StopScreenShare'
 import CallEndIcon from '@material-ui/icons/CallEnd'
 import ChatIcon from '@material-ui/icons/Chat'
 
+import { connectToHiFi } from './HiFi/helper';
+
 import { message } from 'antd'
 import 'antd/dist/antd.css'
 
@@ -104,7 +106,8 @@ class Video extends Component {
 
 	getUserMedia = () => {
 		if ((this.state.video && this.videoAvailable) || (this.state.audio && this.audioAvailable)) {
-			mediaDevices.getUserMedia({ video: this.state.video, audio: this.state.audio })
+			const audio = false; // Make it always `false` regardless of mute state because audio will be handled via HiFi API.
+			mediaDevices.getUserMedia({ video: this.state.video, audio })
 				.then(this.getUserMediaSuccess)
 				.then((stream) => {})
 				.catch((e) => console.error(e))
@@ -167,7 +170,7 @@ class Video extends Component {
 		})
 	}
 
-	getDislayMedia = () => {
+	getDisplayMedia = () => {
 		if (this.state.screen) {
 			if (mediaDevices.getDisplayMedia) {
 				mediaDevices.getDisplayMedia({ video: true, audio: true })
@@ -242,7 +245,8 @@ class Video extends Component {
 		}
 	}
 
-	connectToSocketServer = () => {
+	 connectToSocketServer = async () => {
+		await connectToHiFi(document.getElementById('outputAudioEl'), document.getElementById('main'));
 		socket = io.connect(socketUrl, { secure: true })
 
 		socket.on('signal', this.gotMessageFromServer)
@@ -340,7 +344,7 @@ class Video extends Component {
 
 	handleVideo = () => this.setState({ video: !this.state.video }, () => this.getUserMedia())
 	handleAudio = () => this.setState({ audio: !this.state.audio }, () => this.getUserMedia())
-	handleScreen = () => this.setState({ screen: !this.state.screen }, () => this.getDislayMedia())
+	handleScreen = () => this.setState({ screen: !this.state.screen }, () => this.getDisplayMedia())
 
 	handleEndCall = () => {
 		try {
@@ -495,6 +499,7 @@ class Video extends Component {
 											<ChatIcon />
 										</IconButton>
 									</Badge>
+									<audio autoPlay id="outputAudioEl"></audio>
 								</div>
 							</Row>
 						</div>
