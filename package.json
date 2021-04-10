@@ -33,7 +33,7 @@
     "xss": "^1.0.8"
   },
   "scripts": {
-    "dev": "concurrently -n 'server,client' -c 'red,green'  \"nodemon app.js\" \"NODE_ENV=dev PORT=8001 react-scripts start\"",
+    "dev": "concurrently -n 'server,client' -c 'red,green'  \"nodemon app.js\" \"NODE_ENV=dev PORT=8001 HTTPS=true SSL_CRT_FILE=./keys/xip.io.crt SSL_KEY_FILE=./keys/xip.io.key react-scripts start\"",
     "server": "NODE_ENV=production nodemon app.js",
     "build": "react-scripts build",
     "test": "react-scripts test",

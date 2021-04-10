@@ -20,7 +20,10 @@ import Modal from 'react-bootstrap/Modal'
 import 'bootstrap/dist/css/bootstrap.css'
 import "./Video.css"
 
-const server_url = process.env.SERVER_URL;
+const server_url = 'https://rcw.192.168.1.103.xip.io:4001'; // TODO: process.env.SERVER_URL;
+// const server_url = process.env.SERVER_URL;
+
+console.log({ server_url });
 
 var connections = {}
 const peerConnectionConfig = {
@@ -281,6 +284,7 @@ class Video extends Component {
 		socket.on('signal', this.gotMessageFromServer)
 
 		socket.on('connect', () => {
+			console.log('connect');
 			socket.emit('join-call', window.location.href)
 			socketId = socket.id
 
@@ -298,6 +302,7 @@ class Video extends Component {
 			})
 
 			socket.on('user-joined', (id, clients) => {
+				console.log('user-joined', { clients, connections });
 				clients.forEach((socketListId) => {
 					connections[socketListId] = new RTCPeerConnection(peerConnectionConfig)
 					// Wait for their ice candidate       
@@ -309,23 +314,29 @@ class Video extends Component {
 
 					// Wait for their video stream
 					connections[socketListId].onaddstream = (event) => {
+						console.log('onaddstream', { event });
 						// TODO mute button, full screen button
-						var searchVidep = document.querySelector(`[data-socket="${socketListId}"]`)
-						if (searchVidep !== null) { // if i don't do this check it make an empyt square
-							searchVidep.srcObject = event.stream
+						var searchVideo = document.querySelector(`[data-socket="${socketListId}"]`)
+						if (searchVideo !== null) { // if i don't do this check it make an empyt square
+							searchVideo.srcObject = event.stream
 						} else {
 							elms = clients.length
 							let main = document.getElementById('main')
-							let cssMesure = this.changeCssVideos(main)
+							// let cssMesure = this.changeCssVideos(main)
 
 							let video = document.createElement('video')
 
-							let css = {minWidth: cssMesure.minWidth, minHeight: cssMesure.minHeight, maxHeight: "100%", margin: "10px",
-								borderStyle: "solid", borderColor: "#bdbdbd", objectFit: "fill"} // TODO: Move these to SCSS
-							for(let i in css) video.style[i] = css[i]
+							// let css = {
+							// 	minWidth: cssMesure.minWidth,
+							// 	minHeight: cssMesure.minHeight
+							// } // TODO: improve
+							// for (let i in css) {
+							// 	video.style[i] = css[i];
+							// }
 
-							video.style.setProperty("width", cssMesure.width)
-							video.style.setProperty("height", cssMesure.height)
+							// video.style.setProperty("width", cssMesure.width)
+							// video.style.setProperty("height", cssMesure.height)
+							video.classList.add('other-participant');
 							video.setAttribute('data-socket', socketListId)
 							video.srcObject = event.stream
 							video.autoplay = true
@@ -473,7 +484,7 @@ class Video extends Component {
 							<form onSubmit={this.connect}>
 								<Input placeholder={randomUsername} value={this.state.username} onChange={e => this.handleUsername(e)} />
 								<Button variant="contained" color="primary" style={{ margin: "20px" }} type="submit">Connect</Button>
-								<p>If you don't provide your name, this random one will be used.</p>
+								<p>(If you don't provide your name, this random one will be used.)</p>
 							</form>
 						</div>
 

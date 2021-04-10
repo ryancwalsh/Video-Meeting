@@ -1,5 +1,6 @@
 const express = require('express')
-const http = require('http')
+var https = require('https');
+var fs    = require('fs');
 var cors = require('cors')
 const app = express()
 const bodyParser = require('body-parser')
@@ -7,12 +8,19 @@ const path = require("path")
 var xss = require("xss")
 
 // ----------------------------------------------------------------
+var options = { // https://nodejs.org/en/knowledge/HTTP/servers/how-to-create-a-HTTPS-server/ and https://programmerblog.net/nodejs-https-server/
+	key: fs.readFileSync("keys/xip.io.key"), // https://serversforhackers.com/c/self-signed-ssl-certificates https://github.com/ryancwalsh/xip.io-cert https://www.freecodecamp.org/news/how-to-set-up-https-locally-with-create-react-app/
+	cert: fs.readFileSync("keys/xip.io.crt")	
+};
+console.log({ options });
 
 
-var server = http.createServer(app)
+var server = https.createServer(options, app)
+console.log({ server });
+
 var io = require('socket.io')(server)
 
-app.use(cors())
+app.use(cors()) // https://stackoverflow.com/a/19743442/470749
 app.use(bodyParser.json())
 
 if(process.env.NODE_ENV==='production'){
@@ -21,7 +29,9 @@ if(process.env.NODE_ENV==='production'){
 		res.sendFile(path.join(__dirname+"/build/index.html"))
 	})
 }
-app.set('port', (process.env.PORT || 4001))
+const port = process.env.PORT || 4001;
+console.log({ port });
+app.set('port', port);
 
 let sanitizeString = (str) => {
 	return xss(str)
@@ -34,6 +44,7 @@ let timeOnline = {}
 io.on('connection', (socket) => {
 
 	socket.on('join-call', (path) => {
+		console.log('join-call', {socket, path});
 		if(connections[path] === undefined){
 			connections[path] = []
 		}
@@ -56,6 +67,7 @@ io.on('connection', (socket) => {
 	})
 
 	socket.on('signal', (toId, message) => {
+		// console.log('signal', { toId, message, socket});
 		io.to(toId).emit('signal', socket.id, message)
 	})
 
@@ -88,6 +100,7 @@ io.on('connection', (socket) => {
 	})
 
 	socket.on('disconnect', () => {
+		console.log('disconnect');
 		var diffTime = Math.abs(timeOnline[socket.id] - new Date())
 		var key
 		for (const [k, v] of JSON.parse(JSON.stringify(Object.entries(connections)))) {
@@ -113,6 +126,6 @@ io.on('connection', (socket) => {
 	})
 })
 
-server.listen(app.get('port'), () => {
-	console.log("listening on", app.get('port'))
+server.listen(port, () => {
+	console.log("listening on", port)
 })
