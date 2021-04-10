@@ -14,15 +14,18 @@ class Home extends Component {
 
 	handleChange = (event) => this.setState({ url: event.target.value })
 
+	createNewMeeting = (event) => {
+		event.preventDefault();
+		const url = randomMeetingCode;
+		console.log({ randomMeetingCode, event });
+		window.location.href = `/${url}`;		
+	}
+
 	join = (event) => {
 		event.preventDefault();
 		if (this.state.url !== "") {
 			const url = this.state.url.split("/")
 			window.location.href = `/${url[url.length-1]}`
-		} else {
-			const url = randomMeetingCode;
-			console.log({ randomMeetingCode, event });
-			window.location.href = `/${url}`;
 		}
 	}
 
@@ -35,15 +38,21 @@ class Home extends Component {
 					
 				</div>
 
-				<div style={{
+				<div>
+					<form onSubmit={this.createNewMeeting} style={{
 					background: "white", width: "30%", height: "auto", padding: "20px", minWidth: "400px",
 					textAlign: "center", margin: "auto", marginTop: "100px"
 				}}>
-					<p style={{ margin: 0, fontWeight: "bold", paddingRight: "50px" }}>Start or join a meeting:</p>
-					<p>Optionally provide a meeting ID (to join an existing meeting), or proceeding will start a new meeting.</p>
-					<form onSubmit={this.join}>
-						<Input placeholder={randomMeetingCode} onChange={event => this.handleChange(event)} />
-						<Button variant="contained" color="primary" style={{ margin: "20px" }} type="submit">Go</Button>
+						<Button variant="contained" color="primary" style={{ margin: "20px" }} type="submit">Create New Meeting</Button>
+					</form>
+					<p>or</p>
+					<form onSubmit={this.join} style={{
+					background: "white", width: "30%", height: "auto", padding: "20px", minWidth: "400px",
+					textAlign: "center", margin: "auto", marginTop: "100px"
+					}}>
+						<p>Join an existing meeting by providing its ID here:</p>
+						<Input placeholder={randomMeetingCode} onChange={event => this.handleChange(event)} required />
+						<Button variant="contained" color="primary" style={{ margin: "20px" }} type="submit">Join</Button>
 					</form>
 				</div>
 			</div>
