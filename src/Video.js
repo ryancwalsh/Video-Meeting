@@ -39,7 +39,7 @@ const peerConnectionConfig = {
 var socket = null
 var socketId = null
 
-const randomUsername = 'Mac'; // TODO faker.name.firstName(); // https://www.npmjs.com/package/faker // TODO: Use value from cookie instead if present.
+const randomUsername = window.navigator.platform; // TODO faker.name.firstName(); // https://www.npmjs.com/package/faker // TODO: Use value from cookie instead if present.
 
 const { mediaDevices } = navigator;
 console.log({ navigator, mediaDevices });
