@@ -256,7 +256,7 @@ class Video extends Component {
 	}
 
 	placeVideo = (video, uniqueUserId) => {
-		const wrapper = document.querySelector(`#main div[data-userId="${uniqueUserId}"]`);
+		const wrapper = document.querySelector(`#main div[data-userid="${uniqueUserId}"]`);
 		console.log({ wrapper });
 		if (wrapper) {
 			wrapper.appendChild(video);
@@ -282,12 +282,18 @@ class Video extends Component {
 			socket.on('user-left', (id) => {
 				let video = document.querySelector(`[data-socket="${id}"]`)
 				if (video !== null) {
-					video.parentNode.removeChild(video)
+					const videoParent = video.parentNode;
+					if (videoParent.classList.contains('positioned-participant')) {
+						videoParent.parentNode.removeChild(videoParent);
+					} else {
+						videoParent.removeChild(video);
+					}
 				}
 			})
 
 			socket.on('user-joined', (id, clients) => {
 				console.log('user-joined', { clients, connections });
+				const participantUserId = 'TODO';
 				// participantConnected(id, document.getElementById('main')); // TODO: Figure out what to pass instead of "id"
 				clients.forEach((socketListId) => {
 					const connection = new RTCPeerConnection(peerConnectionConfig);
@@ -310,11 +316,11 @@ class Video extends Component {
 							const  video = document.createElement('video');
 							video.classList.add('other-participant');
 							video.setAttribute('data-socket', socketListId);
-							video.setAttribute('data-userId', uniqueUserId);
+							video.setAttribute('data-userid', participantUserId);
 							video.srcObject = event.stream;
 							video.autoplay = true;
 							video.playsinline = true;
-							this.placeVideo(video, uniqueUserId);
+							this.placeVideo(video, participantUserId);
 						}
 					}
 
@@ -514,8 +520,9 @@ class Video extends Component {
 							<Row className="flex-container" style={{ margin: 0, padding: 0 }}>
 								
 								<div id="main" className="other-participants">
-									<video className="my-video" ref={this.localVideoref} autoPlay muted></video>
+									
 								</div>
+								<video className="my-video" data-userid={this.getUniqueUserId()} ref={this.localVideoref} autoPlay muted></video>
 								<div id="unattached-videos"></div>
 
 								<div className="control-panel">

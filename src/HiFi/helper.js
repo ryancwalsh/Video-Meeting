@@ -37,7 +37,8 @@ const FORWARD_ORIENTATION = {
 
  let userConfigurations = [ // https://github.com/highfidelity/Spatial-Audio-API-Examples/blob/f0fa461/experiments/web/videochat-tokbox/index.html#L75
      null,
-     {
+     null,
+     { // index 2 (2 total participants) means there is 1 other participant
         "positions": [
             new HighFidelityAudio.Point3D({ "x": 0, "y": 0, "z": 0 }),
         ],
@@ -183,7 +184,7 @@ function getBounded(positionConfiguration) {
  * @param {number} numParticipants
  */
 function updateStylePositions(spaceContainer, currentParticipantProvidedUserIds, positionConfiguration, numParticipants) {
-    let eachVideoStyle = userConfigurations[numParticipants - 1].eachVideoStyle;
+    let eachVideoStyle = userConfigurations[numParticipants].eachVideoStyle;
     const containerHeight = spaceContainer.offsetHeight;
     const containerWidth = spaceContainer.offsetWidth;
     // const hashedIDsToVideoElements = spaceContainer.querySelector('video');
@@ -259,10 +260,9 @@ function updatePositions(spaceContainer) {
 
 function moveVideo(userId, videoWrapperDiv) {
     const unattachedVideos = document.getElementById('unattached-videos');
-    const existingVideo = unattachedVideos.querySelector(`video[data-userId="${userId}"]`);
+    const existingVideo = unattachedVideos.querySelector(`video[data-userid="${userId}"]`);
     console.log({ unattachedVideos, existingVideo });
     if (existingVideo) {
-        // document.querySelector(`#main [data-userId="${userId}"]`);
         videoWrapperDiv.appendChild(existingVideo);
     }
 }
@@ -274,47 +274,17 @@ function moveVideo(userId, videoWrapperDiv) {
  */
 export function participantConnected(userId, spaceContainer) {
     console.log('Participant connected', userId);
-    const div = document.createElement('div');
-    div.id = `userId-${userId}`;
-    div.setAttribute('data-username', userId);
-    div.classList.add('positioned-participant');
-    // participant.on('trackAdded', track => {
-    //     if (track.kind === 'data') {
-    //         track.on('message', data => {
-    //             console.log("Message from track:" + data);
-    //         });
-    //     }
-    // });
-    // participant.on('trackSubscribed', track => trackSubscribed(div, track));
-    // participant.on('trackUnsubscribed', trackUnsubscribed);
-    // participant.tracks.forEach(publication => {
-    //     if (publication.isSubscribed) {
-    //         trackSubscribed(div, publication.track);
-    //     }
-    // });
-    providedUserIDsToVideoElementsMap.set(userId, spaceContainer.appendChild(div));
+    const videoWrapperDiv = document.createElement('div');
+    videoWrapperDiv.id = `userId-${userId}`;
+    videoWrapperDiv.setAttribute('data-userid', userId);
+    videoWrapperDiv.classList.add('positioned-participant');
+    videoWrapperDiv.appendChild(document.createTextNode(userId));
+    document.getElementById('main').appendChild(videoWrapperDiv);
+    moveVideo(userId, videoWrapperDiv);
+    providedUserIDsToVideoElementsMap.set(userId, spaceContainer.appendChild(videoWrapperDiv));
     console.log({ providedUserIDsToVideoElementsMap });
     updatePositions(spaceContainer);
 }
-
-// /**
-//  * 
-//  * @param {string} userId
-//  * @param {element} spaceContainer 
-//  */
-// export function participantConnected(userId, spaceContainer) {
-//     console.log('Participant connected', userId);
-//     const videoWrapperDiv = document.createElement('div');
-//     videoWrapperDiv.id = `userId-${userId}`;
-//     videoWrapperDiv.setAttribute('data-userId', userId);
-//     videoWrapperDiv.classList.add('positioned-participant');
-//     videoWrapperDiv.appendChild(document.createTextNode(userId));
-//     document.getElementById('main').appendChild(videoWrapperDiv);
-//     moveVideo(userId, videoWrapperDiv);
-//     providedUserIDsToVideoElementsMap.set(userId, spaceContainer.appendChild(videoWrapperDiv));
-//     console.log({ providedUserIDsToVideoElementsMap });
-//     updatePositions(spaceContainer);
-// }
 
 /**
  * 

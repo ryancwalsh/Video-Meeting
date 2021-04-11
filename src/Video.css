@@ -32,8 +32,7 @@ body {
 }
 
 video {
-    border: 1px solid black;
-    max-width: 100%;    
+    max-width: 100%;
 }
 
 video.my-video {
@@ -75,7 +74,7 @@ video.my-video-preview {
 }
 
 .positioned-participant {
-    position: absolute;
+    border: 1px solid black;
 }
 
 #unattached-videos {
