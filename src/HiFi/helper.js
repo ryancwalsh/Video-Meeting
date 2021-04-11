@@ -1,7 +1,10 @@
 // import { HighFidelityAudio } from 'hifi-spatial-audio'; // https://github.com/highfidelity/Spatial-Audio-API-Examples/blob/main/experiments/nodejs/videochat-twilio/views/index.ejs
 // import { Point3D, HiFiCommunicator } from "hifi-spatial-audio";
 import { getNumRowsAndCols, getVirtualSpaceDimensions, clamp, linearScale } from './tools';
+// import { SignJWT } from 'jose/jwt/sign';
+// import { SignJWT } from 'jose/dist/browser/jwt/sign';
 
+// const { SignJWT } = require('jose/dist/node/cjs/jwt/sign'); // Used to create a JWT associated with your Space.
 const KJUR = require('jsrsasign');
 
 // This is your "App ID" as obtained from the High Fidelity Audio API Developer Console.
@@ -174,10 +177,12 @@ function onNewHiFiUserDataReceived(receivedHiFiAudioAPIDataArray, spaceContainer
  */
 function getJwt(uniqueUsername) {
     // https://www.highfidelity.com/api/guides/misc/getAJWT
+    // TODO: This must be handled via backend instead! https://github.com/highfidelity/Spatial-Audio-API-Examples/blob/5acfe236505303d9dfb918db7c29c8a71c96f9ea/examples/web/dots/index.js#L79
+    // TODO: Uninstall jsrsasign and jsrsasign-util
     console.log({ uniqueUsername });
     try {
         const claims = {
-            "user_id": uniqueUsername,
+            // "user_id": uniqueUsername, // (Optional) A "User ID" string defined by your application that can be used to identify a particular user's connection
             "app_id": APP_ID,
             "space_id": SPACE_ID,
             "admin": false
@@ -192,6 +197,13 @@ function getJwt(uniqueUsername) {
         const sHeader = JSON.stringify(oHeader);
         const sPayload = JSON.stringify(claims);
         const jwt = KJUR.jws.JWS.sign("HS256", sHeader, sPayload, APP_SECRET);
+        // const jwt = await new SignJWT(claims) // https://github.com/panva/jose/blob/main/docs/classes/jwt_sign.signjwt.md#class-signjwt
+        //     .setProtectedHeader({ alg: 'HS256', typ: 'JWT' })
+        //     // .setIssuedAt()
+        //     // .setIssuer('urn:example:issuer')
+        //     // .setAudience('urn:example:audience')
+        //     // .setExpirationTime('2h')
+        //     .sign(APP_SECRET);
         console.log({ jwt });
         return jwt;
     } catch (error) {
@@ -234,12 +246,13 @@ export async function connectToHiFi(outputAudioEl, spaceContainer, uniqueUsernam
     currentParticipantProvidedUserIds = [];
     providedUserIDsToVideoElementsMap.clear();
     try {
-        const jwt = getJwt(uniqueUsername);
+        // const jwt = getJwt(uniqueUsername);
+        const jwt = process.env.REACT_APP_HI_FI_JWT;
         console.log({ jwt });
         let response = await hifiCommunicator.connectToHiFiAudioAPIServer(jwt); // Connect to the HiFi Audio API server!
         myProvidedUserId = response.audionetInitResponse.user_id;
         currentParticipantProvidedUserIds.push(myProvidedUserId);
-        console.log(`My Provided User ID: ${myProvidedUserId}`);
+        console.log(`My Provided User ID: ${myProvidedUserId}`, {currentParticipantProvidedUserIds});
     } catch (error) {
         console.error(`Error connecting to High Fidelity:`, error);
         // connectDisconnectButton.disabled = false;
