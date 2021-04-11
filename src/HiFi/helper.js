@@ -1,21 +1,8 @@
 // import { HighFidelityAudio } from 'hifi-spatial-audio'; // https://github.com/highfidelity/Spatial-Audio-API-Examples/blob/main/experiments/nodejs/videochat-twilio/views/index.ejs
 // import { Point3D, HiFiCommunicator } from "hifi-spatial-audio";
-import { clamp, linearScale } from './tools';
-// import { SignJWT } from 'jose/jwt/sign';
-// import { SignJWT } from 'jose/dist/browser/jwt/sign';
-
-// const { SignJWT } = require('jose/dist/node/cjs/jwt/sign'); // Used to create a JWT associated with your Space.
-const KJUR = require('jsrsasign');
-
-// This is your "App ID" as obtained from the High Fidelity Audio API Developer Console.
-const APP_ID = process.env.REACT_APP_HI_FI_APP_ID;
-
-// This is your "Space ID" as obtained from the High Fidelity Audio API Developer Console.
-const SPACE_ID = process.env.REACT_APP_HI_FI_SPACE_ID;
-console.log({ SPACE_ID });
-
-// This is the "App Secret" as obtained from the High Fidelity Audio API Developer Console.
-const APP_SECRET = process.env.REACT_APP_HI_FI_APP_SECRET;
+import { updateStylePositions, moveVideo } from './tools';
+import { userConfigurations, FORWARD_ORIENTATION, zeroPoint } from './configurations';
+import { getJwt } from './jwt';
 
 const HighFidelityAudio = window.HighFidelityAudio;
 
@@ -24,176 +11,6 @@ let myProvidedUserId;
 let currentParticipantProvidedUserIds = [];
 let providedUserIDsToVideoElementsMap = new Map();
 let isMuted = false;
-const zeroPoint = {
-    x: 0,
-    y: 0,
-    z: 0
-};
-const FORWARD_ORIENTATION = {
-    pitchDegrees: 0,
-    yawDegrees: 0,
-    rollDegrees: 0
-};
-
-let userConfigurations = [ // https://github.com/highfidelity/Spatial-Audio-API-Examples/blob/f0fa461/experiments/web/videochat-tokbox/index.html#L75
-    null,
-    null,
-    { // index 2 (2 total participants) means there is 1 other participant
-        "positions": [
-            new HighFidelityAudio.Point3D({ "x": 0, "y": 0, "z": 0 }),
-        ],
-        "orientations": [
-            new HighFidelityAudio.OrientationEuler3D({ "pitchDegrees": 0, "yawDegrees": 0, "rollDegrees": 0 }),
-        ],
-        "eachVideoStyle": { "width": "100%", "height": "100%" },
-    },
-    {
-        "positions": [
-            new HighFidelityAudio.Point3D({ "x": 0, "y": 0.5, "z": 0 }),
-            new HighFidelityAudio.Point3D({ "x": 0, "y": -0.5, "z": 0 }),
-        ],
-        "orientations": [
-            new HighFidelityAudio.OrientationEuler3D({ "pitchDegrees": 0, "yawDegrees": 180, "rollDegrees": 0 }),
-            new HighFidelityAudio.OrientationEuler3D({ "pitchDegrees": 0, "yawDegrees": 0, "rollDegrees": 0 }),
-        ],
-        "eachVideoStyle": { "width": "100%", "height": "50%" },
-    },
-    {
-        "positions": [
-            new HighFidelityAudio.Point3D({ "x": 0, "y": 0.5, "z": 0 }),
-            new HighFidelityAudio.Point3D({ "x": -0.35, "y": -0.5, "z": 0 }),
-            new HighFidelityAudio.Point3D({ "x": 0.35, "y": -0.5, "z": 0 }),
-        ],
-        "orientations": [
-            new HighFidelityAudio.OrientationEuler3D({ "pitchDegrees": 0, "yawDegrees": 180, "rollDegrees": 0 }),
-            new HighFidelityAudio.OrientationEuler3D({ "pitchDegrees": 0, "yawDegrees": 315, "rollDegrees": 0 }),
-            new HighFidelityAudio.OrientationEuler3D({ "pitchDegrees": 0, "yawDegrees": 45, "rollDegrees": 0 }),
-        ],
-        "eachVideoStyle": { "width": "50%", "height": "50%" },
-    },
-    {
-        "positions": [
-            new HighFidelityAudio.Point3D({ "x": -0.5, "y": -0.5, "z": 0 }),
-            new HighFidelityAudio.Point3D({ "x": 0.5, "y": -0.5, "z": 0 }),
-            new HighFidelityAudio.Point3D({ "x": 0.5, "y": 0.5, "z": 0 }),
-            new HighFidelityAudio.Point3D({ "x": -0.5, "y": 0.5, "z": 0 }),
-        ],
-        "orientations": [
-            new HighFidelityAudio.OrientationEuler3D({ "pitchDegrees": 0, "yawDegrees": 315, "rollDegrees": 0 }),
-            new HighFidelityAudio.OrientationEuler3D({ "pitchDegrees": 0, "yawDegrees": 45, "rollDegrees": 0 }),
-            new HighFidelityAudio.OrientationEuler3D({ "pitchDegrees": 0, "yawDegrees": 135, "rollDegrees": 0 }),
-            new HighFidelityAudio.OrientationEuler3D({ "pitchDegrees": 0, "yawDegrees": 225, "rollDegrees": 0 }),
-        ],
-        "eachVideoStyle": { "width": "50%", "height": "50%" },
-    },
-    {
-        "positions": [
-            new HighFidelityAudio.Point3D({ "x": -0.75, "y": 0.5, "z": 0 }),
-            new HighFidelityAudio.Point3D({ "x": 0, "y": 0.5, "z": 0 }),
-            new HighFidelityAudio.Point3D({ "x": 0.75, "y": 0.5, "z": 0 }),
-            new HighFidelityAudio.Point3D({ "x": -0.75, "y": -0.5, "z": 0 }),
-            new HighFidelityAudio.Point3D({ "x": 0, "y": -0.5, "z": 0 }),
-        ],
-        "orientations": [
-            new HighFidelityAudio.OrientationEuler3D({ "pitchDegrees": 0, "yawDegrees": 225, "rollDegrees": 0 }),
-            new HighFidelityAudio.OrientationEuler3D({ "pitchDegrees": 0, "yawDegrees": 180, "rollDegrees": 0 }),
-            new HighFidelityAudio.OrientationEuler3D({ "pitchDegrees": 0, "yawDegrees": 135, "rollDegrees": 0 }),
-            new HighFidelityAudio.OrientationEuler3D({ "pitchDegrees": 0, "yawDegrees": 315, "rollDegrees": 0 }),
-            new HighFidelityAudio.OrientationEuler3D({ "pitchDegrees": 0, "yawDegrees": 0, "rollDegrees": 0 }),
-        ],
-        "eachVideoStyle": { "width": "33%", "height": "33%" },
-    },
-    {
-        "positions": [
-            new HighFidelityAudio.Point3D({ "x": -0.75, "y": 0.5, "z": 0 }),
-            new HighFidelityAudio.Point3D({ "x": 0, "y": 0.5, "z": 0 }),
-            new HighFidelityAudio.Point3D({ "x": 0.75, "y": 0.5, "z": 0 }),
-            new HighFidelityAudio.Point3D({ "x": -0.75, "y": -0.5, "z": 0 }),
-            new HighFidelityAudio.Point3D({ "x": 0, "y": -0.5, "z": 0 }),
-            new HighFidelityAudio.Point3D({ "x": 0.75, "y": -0.5, "z": 0 }),
-        ],
-        "orientations": [
-            new HighFidelityAudio.OrientationEuler3D({ "pitchDegrees": 0, "yawDegrees": 225, "rollDegrees": 0 }),
-            new HighFidelityAudio.OrientationEuler3D({ "pitchDegrees": 0, "yawDegrees": 180, "rollDegrees": 0 }),
-            new HighFidelityAudio.OrientationEuler3D({ "pitchDegrees": 0, "yawDegrees": 135, "rollDegrees": 0 }),
-            new HighFidelityAudio.OrientationEuler3D({ "pitchDegrees": 0, "yawDegrees": 315, "rollDegrees": 0 }),
-            new HighFidelityAudio.OrientationEuler3D({ "pitchDegrees": 0, "yawDegrees": 0, "rollDegrees": 0 }),
-            new HighFidelityAudio.OrientationEuler3D({ "pitchDegrees": 0, "yawDegrees": 45, "rollDegrees": 0 }),
-        ],
-        "eachVideoStyle": { "width": "33%", "height": "33%" },
-    },
-];
-
-/**
- * 
- * @param {object} positionConfiguration 
- * @returns {object}
- */
-function getBounded(positionConfiguration) {
-    let possiblePositions = positionConfiguration.positions;
-    let xMin = 9999;
-    let xMax = -9999;
-    let yMin = 9999;
-    let yMax = -9999;
-    for (let i = 0; i < possiblePositions.length; i += 1) {
-        const pos = possiblePositions[i];
-        if (pos.x < xMin) {
-            xMin = pos.x;
-        }
-        if (pos.x > xMax) {
-            xMax = pos.x;
-        }
-        if (pos.y < yMin) {
-            yMin = pos.y;
-        }
-        if (pos.y > yMax) {
-            yMax = pos.y;
-        }
-    }
-    console.log('getBounded', { xMin, xMax, yMin, yMax });
-    return { xMin, xMax, yMin, yMax };
-}
-
-/**
- * 
- * @param {element} spaceContainer 
- * @param {array} currentParticipantProvidedUserIds
- * @param {object} positionConfiguration 
- * @param {number} numParticipants
- */
-function updateStylePositions(spaceContainer, currentParticipantProvidedUserIds, positionConfiguration, numParticipants) {
-    let eachVideoStyle = userConfigurations[numParticipants].eachVideoStyle;
-    const containerHeight = spaceContainer.offsetHeight;
-    const containerWidth = spaceContainer.offsetWidth;
-    // const hashedIDsToVideoElements = spaceContainer.querySelector('video');
-    const { xMin, xMax, yMin, yMax } = getBounded(positionConfiguration);
-
-    providedUserIDsToVideoElementsMap.forEach((element, key, map) => {
-        let idx = currentParticipantProvidedUserIds.indexOf(key);
-        let position = positionConfiguration.positions[idx];
-        console.log({ idx, position });
-
-        element.style.width = eachVideoStyle.width;
-        element.style.height = eachVideoStyle.height;
-
-        // `-1` term because we want higher `position.y` values to yield a video towards the top of the browser window
-        let topOffset = linearScale(-1 * position.y, yMin, yMax, 0, containerHeight) - (element.offsetHeight / 2);
-        topOffset = clamp(topOffset, 0, containerHeight - element.offsetHeight);
-        if (numParticipants > 1) {
-            element.style.top = `${topOffset}px`;
-        } else {
-            element.style.top = "0";
-        }
-
-        let leftOffset = linearScale(position.x, xMin, xMax, 0, containerWidth) - (element.offsetWidth / 2);
-        leftOffset = clamp(leftOffset, 0, containerWidth - element.offsetWidth);
-        if (numParticipants > 1) {
-            element.style.left = `${leftOffset}px`;
-        } else {
-            element.style.left = "0";
-        }
-    });
-}
 
 /**
  * 
@@ -225,16 +42,8 @@ function updatePositions(spaceContainer) {
     console.log('myVector', JSON.stringify(myVector, null, 2), { positionConfiguration });
     const userDataUpdated = hifiCommunicator.updateUserDataAndTransmit(myVector);
     console.log('updateUserDataAndTransmit', userDataUpdated);
-    updateStylePositions(spaceContainer, currentParticipantProvidedUserIds, positionConfiguration, numParticipants);
-}
-
-function moveVideo(userId, videoWrapperDiv) {
-    const unattachedVideos = document.getElementById('unattached-videos');
-    const existingVideo = unattachedVideos.querySelector(`video[data-userid="${userId}"]`);
-    console.log({ unattachedVideos, existingVideo });
-    if (existingVideo) {
-        videoWrapperDiv.appendChild(existingVideo);
-    }
+    updateStylePositions(spaceContainer, currentParticipantProvidedUserIds, positionConfiguration,
+        numParticipants, providedUserIDsToVideoElementsMap, userConfigurations);
 }
 
 /**
@@ -276,48 +85,6 @@ function onNewHiFiUserDataReceived(receivedHiFiAudioAPIDataArray, spaceContainer
 
     if (newUserReceived) {
         updatePositions(spaceContainer);
-    }
-}
-
-/**
- * 
- * @param {string} uniqueUserId Set this string to an arbitrary value. Its value should be unique across all clients connecting to a given Space so that other clients can identify this one.
- * @returns {SignJWT}
- */
-function getJwt(uniqueUserId) {
-    // https://www.highfidelity.com/api/guides/misc/getAJWT
-    // TODO: This must be handled via backend instead! https://github.com/highfidelity/Spatial-Audio-API-Examples/blob/5acfe236505303d9dfb918db7c29c8a71c96f9ea/examples/web/dots/index.js#L79
-    // TODO: Uninstall jsrsasign and jsrsasign-util
-    console.log({ uniqueUserId });
-    try {
-        const claims = {
-            "user_id": uniqueUserId, // (Optional) A "User ID" string defined by your application that can be used to identify a particular user's connection
-            "app_id": APP_ID,
-            "space_id": SPACE_ID,
-            "admin": false
-        };
-        // console.log({ claims });
-        const oHeader = {alg: 'HS256', typ: 'JWT'};
-        const tNow = KJUR.jws.IntDate.get('now');
-        const tEnd = KJUR.jws.IntDate.get('now + 1day');
-        claims.nbf = tNow;
-        claims.iat = tNow;
-        claims.exp = tEnd;
-        const sHeader = JSON.stringify(oHeader);
-        const sPayload = JSON.stringify(claims);
-        const jwt = KJUR.jws.JWS.sign("HS256", sHeader, sPayload, APP_SECRET);
-        // const jwt = await new SignJWT(claims) // https://github.com/panva/jose/blob/main/docs/classes/jwt_sign.signjwt.md#class-signjwt
-        //     .setProtectedHeader({ alg: 'HS256', typ: 'JWT' })
-        //     // .setIssuedAt()
-        //     // .setIssuer('urn:example:issuer')
-        //     // .setAudience('urn:example:audience')
-        //     // .setExpirationTime('2h')
-        //     .sign(APP_SECRET);
-        console.log({ jwt });
-        return jwt;
-    } catch (error) {
-        console.error(`Couldn't create JWT! Error: ${error}`);
-        return;
     }
 }
 
