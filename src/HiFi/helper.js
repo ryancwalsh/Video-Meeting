@@ -171,6 +171,7 @@ function getBounded(positionConfiguration) {
             yMax = possiblePositions[i].y;
         }
     }
+    console.log('getBounded', { xMin, xMax, yMin, yMax });
     return { xMin, xMax, yMin, yMax };
 }
 
@@ -256,6 +257,16 @@ function updatePositions(spaceContainer) {
     updateStylePositions(spaceContainer, currentParticipantProvidedUserIds, positionConfiguration, numParticipants);
 }
 
+function moveVideo(userId, videoWrapperDiv) {
+    const unattachedVideos = document.getElementById('unattached-videos');
+    const existingVideo = unattachedVideos.querySelector(`video[data-userId="${userId}"]`);
+    console.log({ unattachedVideos, existingVideo });
+    if (existingVideo) {
+        // document.querySelector(`#main [data-userId="${userId}"]`);
+        videoWrapperDiv.appendChild(existingVideo);
+    }
+}
+
 /**
  * 
  * @param {string} userId
@@ -285,6 +296,25 @@ export function participantConnected(userId, spaceContainer) {
     console.log({ providedUserIDsToVideoElementsMap });
     updatePositions(spaceContainer);
 }
+
+// /**
+//  * 
+//  * @param {string} userId
+//  * @param {element} spaceContainer 
+//  */
+// export function participantConnected(userId, spaceContainer) {
+//     console.log('Participant connected', userId);
+//     const videoWrapperDiv = document.createElement('div');
+//     videoWrapperDiv.id = `userId-${userId}`;
+//     videoWrapperDiv.setAttribute('data-userId', userId);
+//     videoWrapperDiv.classList.add('positioned-participant');
+//     videoWrapperDiv.appendChild(document.createTextNode(userId));
+//     document.getElementById('main').appendChild(videoWrapperDiv);
+//     moveVideo(userId, videoWrapperDiv);
+//     providedUserIDsToVideoElementsMap.set(userId, spaceContainer.appendChild(videoWrapperDiv));
+//     console.log({ providedUserIDsToVideoElementsMap });
+//     updatePositions(spaceContainer);
+// }
 
 /**
  * 

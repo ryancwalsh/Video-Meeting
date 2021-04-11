@@ -39,7 +39,7 @@ const peerConnectionConfig = {
 var socket = null
 var socketId = null
 
-const randomUsername = faker.name.firstName(); // https://www.npmjs.com/package/faker // TODO: Use value from cookie instead if present.
+const randomUsername = 'Mac'; // TODO faker.name.firstName(); // https://www.npmjs.com/package/faker // TODO: Use value from cookie instead if present.
 
 const { mediaDevices } = navigator;
 console.log({ navigator, mediaDevices });
@@ -255,6 +255,16 @@ class Video extends Component {
 		return `${this.state.username.replace(' ', '_')}_${guid()}`;
 	}
 
+	placeVideo = (video, uniqueUserId) => {
+		const wrapper = document.querySelector(`#main div[data-userId="${uniqueUserId}"]`);
+		console.log({ wrapper });
+		if (wrapper) {
+			wrapper.appendChild(video);
+		} else {
+			document.getElementById('unattached-videos').appendChild(video);
+		}
+	}
+
 	connectToSocketServer = async () => {
 		const uniqueUserId = this.getUniqueUserId();
 		await connectToHiFi(document.getElementById('outputAudioEl'), document.getElementById('main'), uniqueUserId);
@@ -295,19 +305,16 @@ class Video extends Component {
 						// TODO mute button, full screen button
 						var searchVideo = document.querySelector(`[data-socket="${socketListId}"]`)
 						if (searchVideo !== null) { // Without this check, it would be an empty square.
-							searchVideo.srcObject = event.stream
+							searchVideo.srcObject = event.stream;
 						} else {
-							const main = document.getElementById('main')
-							// TODO const wrapper = document.querySelectorAll('[data-userId=]')
-							let video = document.createElement('video')
+							const  video = document.createElement('video');
 							video.classList.add('other-participant');
-							video.setAttribute('data-socket', socketListId)
-							video.srcObject = event.stream
-							video.autoplay = true
-							video.playsinline = true
-
-							main.appendChild(video)
-							// TODO wrapper.appendChild(video)
+							video.setAttribute('data-socket', socketListId);
+							video.setAttribute('data-userId', uniqueUserId);
+							video.srcObject = event.stream;
+							video.autoplay = true;
+							video.playsinline = true;
+							this.placeVideo(video, uniqueUserId);
 						}
 					}
 
@@ -509,6 +516,7 @@ class Video extends Component {
 								<div id="main" className="other-participants">
 									<video className="my-video" ref={this.localVideoref} autoPlay muted></video>
 								</div>
+								<div id="unattached-videos"></div>
 
 								<div className="control-panel">
 									<IconButton style={{ color: "#f44336" }} onClick={this.handleEndCall} title="Enable/disable call">

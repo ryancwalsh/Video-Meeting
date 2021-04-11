@@ -77,3 +77,8 @@ video.my-video-preview {
 .positioned-participant {
     position: absolute;
 }
+
+#unattached-videos {
+    opacity: 0.1;
+    /* display: none; */
+}
