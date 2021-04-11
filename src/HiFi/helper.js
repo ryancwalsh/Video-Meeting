@@ -75,7 +75,7 @@ function updatePositions(spaceContainer) {
     console.log(`updatePositions ${numParticipants} participants.`);
     let myIndex = currentParticipantProvidedUserIds.indexOf(myProvidedUserId);
     if (myIndex === -1) {
-        console.error(`Couldn't find \`myProvidedUserID\` ${myProvidedUserId} in \`currentParticipantProvidedUserIDs\`!`);
+        console.error(`Couldn't find \`myProvidedUserID\` ${myProvidedUserId} in \`currentParticipantProvidedUserIDs\`!`, currentParticipantProvidedUserIds);
         return;
     }
     const { numRows, numCols } = getNumRowsAndCols(numParticipants, containerWidth, containerHeight);
@@ -98,7 +98,7 @@ function updatePositions(spaceContainer) {
     providedUserIDsToVideoElementsMap.forEach((value, key, map) => {
         let idx = currentParticipantProvidedUserIds.indexOf(key);
         if (idx === -1) {
-            console.error(`Couldn't find \`providedUserID\` \`${key}\` in \`currentParticipantProvidedUserIDs\`!`);
+            console.error(`Couldn't find \`providedUserID\` \`${key}\` in \`currentParticipantProvidedUserIDs\`!`, currentParticipantProvidedUserIds);
             return;
         }
         let position = possiblePositions[idx];
@@ -182,7 +182,7 @@ function getJwt(uniqueUserId) {
     console.log({ uniqueUserId });
     try {
         const claims = {
-            // "user_id": uniqueUserId, // (Optional) A "User ID" string defined by your application that can be used to identify a particular user's connection
+            "user_id": uniqueUserId, // (Optional) A "User ID" string defined by your application that can be used to identify a particular user's connection
             "app_id": APP_ID,
             "space_id": SPACE_ID,
             "admin": false
@@ -252,7 +252,7 @@ export async function connectToHiFi(outputAudioEl, spaceContainer, uniqueUsernam
         let response = await hifiCommunicator.connectToHiFiAudioAPIServer(jwt); // Connect to the HiFi Audio API server!
         myProvidedUserId = response.audionetInitResponse.user_id;
         currentParticipantProvidedUserIds.push(myProvidedUserId);
-        console.log(`My Provided User ID: ${myProvidedUserId}`, {currentParticipantProvidedUserIds});
+        console.log({ myProvidedUserId, currentParticipantProvidedUserIds, response });
     } catch (error) {
         console.error(`Error connecting to High Fidelity:`, error);
         // connectDisconnectButton.disabled = false;

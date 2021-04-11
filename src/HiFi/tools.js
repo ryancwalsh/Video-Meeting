@@ -1,13 +1,36 @@
+/**
+ * 
+ * @param {number} value 
+ * @param {number} min 
+ * @param {number} max 
+ * @returns {number}
+ */
 export function clamp(value, min, max) {
     return Math.min(Math.max(value, min), max);
 }
-    
+
+/**
+ * 
+ * @param {number} factor 
+ * @param {number} minInput 
+ * @param {number} maxInput 
+ * @param {number} minOutput 
+ * @param {number} maxOutput 
+ * @returns {number}
+ */
 export function linearScale(factor, minInput, maxInput, minOutput, maxOutput) {
-    factor = clamp(factor, minInput, maxInput);
-    const scaled = minOutput + (maxOutput - minOutput) * (factor - minInput) / (maxInput - minInput);
+    const boundFactor = clamp(factor, minInput, maxInput);
+    const scaled = minOutput + (maxOutput - minOutput) * (boundFactor - minInput) / (maxInput - minInput);
     return scaled;
 }
 
+/**
+ * 
+ * @param {number} numParticipants 
+ * @param {number} videoContainerWidth 
+ * @param {number} videoContainerHeight 
+ * @returns {object}
+ */
 export function getNumRowsAndCols(numParticipants, videoContainerWidth, videoContainerHeight) {
     // TODO: Make more dynamic, and make responsive to screen size.
     let numRows;
@@ -16,8 +39,8 @@ export function getNumRowsAndCols(numParticipants, videoContainerWidth, videoCon
         numRows = 1;
         numCols = 1;
     } else if (numParticipants === 2) {
-        numRows = 2;
-        numCols = 1;
+        numRows = 1;
+        numCols = 2; // left vs right ear
     } else if (numParticipants === 3 || numParticipants === 4) {
         numRows = 2;
         numCols = 2;
@@ -33,10 +56,18 @@ export function getNumRowsAndCols(numParticipants, videoContainerWidth, videoCon
     return numRowsAndCols;
 }
 
+/**
+ * 
+ * @param {number} numRows 
+ * @param {number} numCols
+ * @returns {object}
+ */
 export function getVirtualSpaceDimensions(numRows, numCols) {
+    const virtualCellWidth = 200; // in meters // TODO
+    const virtualCellHeight = virtualCellWidth * 9/16; // in meters
     const virtualSpaceDimensions = {
-        "x": numRows / 2, // in meters
-        "y": numCols / 2,
+        x: numRows * virtualCellWidth,
+        y: numCols * virtualCellHeight,
     };
     console.log(`New virtual space dimensions (meters): ${JSON.stringify(virtualSpaceDimensions)}`);
     return virtualSpaceDimensions;

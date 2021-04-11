@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
 import { Input, Button } from '@material-ui/core';
+import { guid } from './utils/rand';
 import "./Home.css"
 
-const randomMeetingCode = Math.random().toString(36).substring(2, 10); // TODO: Ensure that these are all readable characters.
+const randomMeetingCode = guid();
 
 class Home extends Component {
   	constructor (props) {

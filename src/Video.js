@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import io from 'socket.io-client'
 import faker from "faker"
+import { guid } from './utils/rand';
 
 import {IconButton, Badge, Input, Button} from '@material-ui/core'
 import VideocamIcon from '@material-ui/icons/Videocam'
@@ -250,8 +251,9 @@ class Video extends Component {
 		}
 	}
 
-	 connectToSocketServer = async () => {
-		await connectToHiFi(document.getElementById('outputAudioEl'), document.getElementById('main'), this.state.username);
+	connectToSocketServer = async () => {
+		const uniqueUserId = guid();
+		await connectToHiFi(document.getElementById('outputAudioEl'), document.getElementById('main'), uniqueUserId);
 		socket = io.connect(socketUrl, { secure: true })
 
 		socket.on('signal', this.gotMessageFromServer)
