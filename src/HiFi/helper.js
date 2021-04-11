@@ -124,13 +124,13 @@ function updatePositions(spaceContainer) {
 
 /**
  * 
- * @param {string} participantId
+ * @param {string} userId
  * @param {element} spaceContainer 
  */
-export function participantConnected(participantId, spaceContainer) {
-    console.log('Participant connected', participantId);
+export function participantConnected(userId, spaceContainer) {
+    console.log('Participant connected', userId);
     const div = document.createElement('div');
-    div.id = `participantId-${participantId}`;
+    div.id = `userId-${userId}`;
     // participant.on('trackAdded', track => {
     //     if (track.kind === 'data') {
     //         track.on('message', data => {
@@ -145,7 +145,7 @@ export function participantConnected(participantId, spaceContainer) {
     //         trackSubscribed(div, publication.track);
     //     }
     // });
-    providedUserIDsToVideoElementsMap.set(participantId, spaceContainer.appendChild(div));
+    providedUserIDsToVideoElementsMap.set(userId, spaceContainer.appendChild(div));
     updatePositions(spaceContainer);
 }
 
@@ -172,17 +172,17 @@ function onNewHiFiUserDataReceived(receivedHiFiAudioAPIDataArray, spaceContainer
 
 /**
  * 
- * @param {string} uniqueUsername Set this string to an arbitrary value. Its value should be unique across all clients connecting to a given Space so that other clients can identify this one.
+ * @param {string} uniqueUserId Set this string to an arbitrary value. Its value should be unique across all clients connecting to a given Space so that other clients can identify this one.
  * @returns {SignJWT}
  */
-function getJwt(uniqueUsername) {
+function getJwt(uniqueUserId) {
     // https://www.highfidelity.com/api/guides/misc/getAJWT
     // TODO: This must be handled via backend instead! https://github.com/highfidelity/Spatial-Audio-API-Examples/blob/5acfe236505303d9dfb918db7c29c8a71c96f9ea/examples/web/dots/index.js#L79
     // TODO: Uninstall jsrsasign and jsrsasign-util
-    console.log({ uniqueUsername });
+    console.log({ uniqueUserId });
     try {
         const claims = {
-            // "user_id": uniqueUsername, // (Optional) A "User ID" string defined by your application that can be used to identify a particular user's connection
+            // "user_id": uniqueUserId, // (Optional) A "User ID" string defined by your application that can be used to identify a particular user's connection
             "app_id": APP_ID,
             "space_id": SPACE_ID,
             "admin": false
@@ -246,8 +246,8 @@ export async function connectToHiFi(outputAudioEl, spaceContainer, uniqueUsernam
     currentParticipantProvidedUserIds = [];
     providedUserIDsToVideoElementsMap.clear();
     try {
-        // const jwt = getJwt(uniqueUsername);
-        const jwt = process.env.REACT_APP_HI_FI_JWT;
+        const jwt = getJwt(uniqueUsername);
+        // const jwt = process.env.REACT_APP_HI_FI_JWT;
         console.log({ jwt });
         let response = await hifiCommunicator.connectToHiFiAudioAPIServer(jwt); // Connect to the HiFi Audio API server!
         myProvidedUserId = response.audionetInitResponse.user_id;

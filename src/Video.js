@@ -272,7 +272,7 @@ class Video extends Component {
 
 			socket.on('user-joined', (id, clients) => {
 				console.log('user-joined', { clients, connections });
-				participantConnected(id, document.getElementById('main'));
+				participantConnected(id, document.getElementById('main')); // TODO: Figure out what to pass instead of "id"
 				clients.forEach((socketListId) => {
 					const connection = new RTCPeerConnection(peerConnectionConfig);
 					connections[socketListId] = connection;
