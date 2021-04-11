@@ -15,7 +15,7 @@ import StopScreenShareIcon from '@material-ui/icons/StopScreenShare'
 import CallEndIcon from '@material-ui/icons/CallEnd'
 import ChatIcon from '@material-ui/icons/Chat'
 
-import { connectToHiFi, toggleMicInputMute, participantConnected } from './HiFi/helper';
+import { connectToHiFi, toggleMicInputMute } from './HiFi/helper';
 
 import { message } from 'antd'
 import 'antd/dist/antd.css'
@@ -259,9 +259,9 @@ class Video extends Component {
 		const wrapper = document.querySelector(`#main div[data-userid="${uniqueUserId}"]`);
 		console.log({ wrapper });
 		if (wrapper) {
-			wrapper.appendChild(video);
+			wrapper.prepend(video);
 		} else {
-			document.getElementById('unattached-videos').appendChild(video);
+			document.getElementById('unattached-videos').append(video);
 		}
 	}
 
@@ -270,90 +270,99 @@ class Video extends Component {
 		await connectToHiFi(document.getElementById('outputAudioEl'), document.getElementById('main'), uniqueUserId);
 		socket = io.connect(socketUrl, { secure: true })
 
-		socket.on('signal', this.gotMessageFromServer)
+		socket.on('signal', this.gotMessageFromServer);
 
 		socket.on('connect', () => {
 			console.log('connect');
+			socket.emit('set-userid', uniqueUserId); // https://socket.io/docs/v4/emitting-events/#Basic-emit
 			socket.emit('join-call', window.location.href)
 			socketId = socket.id
+		});
 
-			socket.on('chat-message', this.addMessage)
+		socket.on('chat-message', this.addMessage);
 
-			socket.on('user-left', (id) => {
-				let video = document.querySelector(`[data-socket="${id}"]`)
-				if (video !== null) {
-					const videoParent = video.parentNode;
-					if (videoParent.classList.contains('positioned-participant')) {
-						videoParent.parentNode.removeChild(videoParent);
-					} else {
-						videoParent.removeChild(video);
+		socket.on('user-left', (id) => {
+			let video = document.querySelector(`[data-socket="${id}"]`)
+			if (video !== null) {
+				const videoParent = video.parentNode;
+				if (videoParent.classList.contains('positioned-participant')) {
+					videoParent.parentNode.removeChild(videoParent);
+				} else {
+					videoParent.removeChild(video);
+				}
+			}
+		});
+
+		socket.on('data', (data) => {
+			console.log({ data });
+		});
+
+		socket.on('user-joined', (id, clients, participantUserId) => {
+			console.log('user-joined', { clients, connections, participantUserId });
+			clients.forEach((socketListId) => {
+				console.log('clients.forEach socketListId', socketListId);
+				const connection = new RTCPeerConnection(peerConnectionConfig);
+				console.log({ connection });
+				connections[socketListId] = connection;
+				// Wait for their ice candidate
+				connection.onicecandidate = function (event) {
+					if (event.candidate != null) {
+						socket.emit('signal', socketListId, JSON.stringify({ 'ice': event.candidate }))
 					}
+				}
+
+				// Wait for their video stream
+				connection.onaddstream = (event) => {
+					console.log('onaddstream', { event });
+					// TODO mute button, full screen button
+					var searchVideo = document.querySelector(`[data-socket="${socketListId}"]`)
+					if (searchVideo !== null) { // Without this check, it would be an empty square.
+						searchVideo.srcObject = event.stream;
+					} else {
+						const video = document.createElement('video');
+						video.classList.add('other-participant');
+						video.setAttribute('data-socket', socketListId);
+						video.setAttribute('data-userid', participantUserId);
+						video.srcObject = event.stream;
+						video.autoplay = true;
+						video.playsinline = true;
+						this.placeVideo(video, participantUserId);
+					}
+				}
+
+				// Add the local video stream
+				if (window.localStream !== undefined && window.localStream !== null) {
+					connection.addStream(window.localStream)
+				} else {
+					// TODO: Reduce duplication with other section like this.
+					let blackSilence = (...args) => new MediaStream([this.black(...args), this.silence()])
+					window.localStream = blackSilence()
+					connection.addStream(window.localStream)
 				}
 			})
 
-			socket.on('user-joined', (id, clients) => {
-				console.log('user-joined', { clients, connections });
-				const participantUserId = 'TODO';
-				// participantConnected(id, document.getElementById('main')); // TODO: Figure out what to pass instead of "id"
-				clients.forEach((socketListId) => {
-					const connection = new RTCPeerConnection(peerConnectionConfig);
-					connections[socketListId] = connection;
-					// Wait for their ice candidate
-					connection.onicecandidate = function (event) {
-						if (event.candidate != null) {
-							socket.emit('signal', socketListId, JSON.stringify({ 'ice': event.candidate }))
-						}
+			if (id === socketId) {
+				for (let id2 in connections) {
+					if (id2 === socketId) {
+						continue;
 					}
-
-					// Wait for their video stream
-					connection.onaddstream = (event) => {
-						console.log('onaddstream', { event });
-						// TODO mute button, full screen button
-						var searchVideo = document.querySelector(`[data-socket="${socketListId}"]`)
-						if (searchVideo !== null) { // Without this check, it would be an empty square.
-							searchVideo.srcObject = event.stream;
-						} else {
-							const  video = document.createElement('video');
-							video.classList.add('other-participant');
-							video.setAttribute('data-socket', socketListId);
-							video.setAttribute('data-userid', participantUserId);
-							video.srcObject = event.stream;
-							video.autoplay = true;
-							video.playsinline = true;
-							this.placeVideo(video, participantUserId);
-						}
-					}
-
-					// Add the local video stream
-					if (window.localStream !== undefined && window.localStream !== null) {
-						connection.addStream(window.localStream)
-					} else {
-						// TODO: Reduce duplication with other section like this.
-						let blackSilence = (...args) => new MediaStream([this.black(...args), this.silence()])
-						window.localStream = blackSilence()
-						connection.addStream(window.localStream)
-					}
-				})
-
-				if (id === socketId) {
-					for (let id2 in connections) {
-						if (id2 === socketId) continue
-						
-						try {
-							connections[id2].addStream(window.localStream)
-						} catch(e) {}
-			
-						connections[id2].createOffer().then((description) => {
-							connections[id2].setLocalDescription(description)
-								.then(() => {
-									socket.emit('signal', id2, JSON.stringify({ 'sdp': connections[id2].localDescription }))
-								})
-								.catch(e => console.error(e))
-						})
-					}
+					
+					try {
+						connections[id2].addStream(window.localStream)
+					} catch (error) {
+						console.error(error);
+					 }
+		
+					connections[id2].createOffer().then((description) => {
+						connections[id2].setLocalDescription(description)
+							.then(() => {
+								socket.emit('signal', id2, JSON.stringify({ 'sdp': connections[id2].localDescription }))
+							})
+							.catch(e => console.error(e))
+					})
 				}
-			})
-		})
+			}
+		});
 	}
 
 	silence = () => {

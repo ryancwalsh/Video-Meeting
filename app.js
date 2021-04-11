@@ -58,6 +58,11 @@ let timeOnline = {}
 
 io.on('connection', (socket) => {
 
+	socket.on('set-userid', (userId) => {		
+		socket.data.userId = userId; // https://socket.io/docs/v4/server-socket-instance/#Socket-data
+		console.log('set-userid', userId);
+	});
+
 	socket.on('join-call', (path) => {
 		console.log('join-call', {socket, path});
 		if(connections[path] === undefined){
@@ -68,7 +73,7 @@ io.on('connection', (socket) => {
 		timeOnline[socket.id] = new Date()
 
 		for(let a = 0; a < connections[path].length; ++a){
-			io.to(connections[path][a]).emit("user-joined", socket.id, connections[path])
+			io.to(connections[path][a]).emit("user-joined", socket.id, connections[path], socket.data.userId)
 		}
 
 		if(messages[path] !== undefined){

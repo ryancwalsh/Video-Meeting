@@ -51,13 +51,13 @@ function updatePositions(spaceContainer) {
  * @param {string} userId
  * @param {element} spaceContainer 
  */
-export function participantConnected(userId, spaceContainer) {
+function participantConnected(userId, spaceContainer) {
     console.log('Participant connected', userId);
+    const username = userId.split('_')[0]; // TODO: Handle cases where users provide a username with one or more underscores.
     const videoWrapperDiv = document.createElement('div');
-    videoWrapperDiv.id = `userId-${userId}`;
     videoWrapperDiv.setAttribute('data-userid', userId);
     videoWrapperDiv.classList.add('positioned-participant');
-    videoWrapperDiv.appendChild(document.createTextNode(userId));
+    videoWrapperDiv.appendChild(document.createTextNode(username));
     document.getElementById('main').appendChild(videoWrapperDiv);
     moveVideo(userId, videoWrapperDiv);
     providedUserIDsToVideoElementsMap.set(userId, spaceContainer.appendChild(videoWrapperDiv));
