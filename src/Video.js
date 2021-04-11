@@ -300,9 +300,9 @@ class Video extends Component {
 		socket.on('user-joined', (id, clients, participantUserId) => {
 			console.log('user-joined', { clients, connections, participantUserId });
 			clients.forEach((socketListId) => {
-				console.log('clients.forEach socketListId', socketListId);
+				// console.log('clients.forEach socketListId', socketListId);
 				const connection = new RTCPeerConnection(peerConnectionConfig);
-				console.log({ connection });
+				// console.log({ connection });
 				connections[socketListId] = connection;
 				// Wait for their ice candidate
 				connection.onicecandidate = function (event) {

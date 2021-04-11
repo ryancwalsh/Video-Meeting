@@ -1,8 +1,8 @@
 const HighFidelityAudio = window.HighFidelityAudio;
-export const zeroPoint = {
-    x: 0,
-    y: 0,
-    z: 0
+export const zeroPoint = { // https://docs.highfidelity.com/js/latest/classes/classes_hifiaudioapidata.point3d.html
+    x: 0, //-x is left; +x is right
+    y: 0, //-y is out of the screen towards the user; +y is into the screen
+    z: 0 // -z is down; +z is up
 };
 export const FORWARD_ORIENTATION = {
     pitchDegrees: 0,
@@ -11,9 +11,7 @@ export const FORWARD_ORIENTATION = {
 };
 
 export const userConfigurations = [ // https://github.com/highfidelity/Spatial-Audio-API-Examples/blob/f0fa461/experiments/web/videochat-tokbox/index.html#L75
-    null,
-    null,
-    { // index 2 (2 total participants) means there is 1 other participant
+    {
         "positions": [
             new HighFidelityAudio.Point3D(zeroPoint),
         ],
@@ -22,7 +20,7 @@ export const userConfigurations = [ // https://github.com/highfidelity/Spatial-A
         ],
         "eachVideoStyle": { "width": "100%", "height": "100%" },
     },
-    {
+    { // index 1 means there is 1 other participant (2 total participants)
         "positions": [
             new HighFidelityAudio.Point3D({ "x": 0, "y": 0.5, "z": 0 }),
             new HighFidelityAudio.Point3D({ "x": 0, "y": -0.5, "z": 0 }),

@@ -65,12 +65,13 @@ function getBounded(positionConfiguration) {
  */
 export function updateStylePositions(spaceContainer, currentParticipantProvidedUserIds, positionConfiguration,
     numParticipants, providedUserIDsToVideoElementsMap, userConfigurations) {
-    let eachVideoStyle = userConfigurations[numParticipants].eachVideoStyle;
+    let eachVideoStyle = userConfigurations[numParticipants - 1].eachVideoStyle;
     const containerHeight = spaceContainer.offsetHeight;
     const containerWidth = spaceContainer.offsetWidth;
     // const hashedIDsToVideoElements = spaceContainer.querySelector('video');
     const { xMin, xMax, yMin, yMax } = getBounded(positionConfiguration);
 
+    console.log({ currentParticipantProvidedUserIds, providedUserIDsToVideoElementsMap });
     providedUserIDsToVideoElementsMap.forEach((element, key, map) => {
         let idx = currentParticipantProvidedUserIds.indexOf(key);
         let position = positionConfiguration.positions[idx];

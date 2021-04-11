@@ -32,7 +32,7 @@ function updatePositions(spaceContainer) {
         return;
     }
     
-    let positionConfiguration = userConfigurations[numParticipants];
+    let positionConfiguration = userConfigurations[numParticipants - 1];
     let myPosition = positionConfiguration.positions[myIndex];
     let myOrientation = positionConfiguration.orientations[myIndex];
     const myVector = {

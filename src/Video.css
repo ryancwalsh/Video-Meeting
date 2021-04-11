@@ -52,9 +52,7 @@ video.my-video {
 }
 
 video.other-participant {
-    display: flex;
-    margin: 10px;
-    max-height: 50vh;
+    
 }
 
 video.my-video-preview {
@@ -75,6 +73,12 @@ video.my-video-preview {
 
 .positioned-participant {
     border: 1px solid black;
+    margin: 10px;
+    display: flex;
+}
+
+.positioned-participant .username {
+    
 }
 
 #unattached-videos {
