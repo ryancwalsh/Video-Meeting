@@ -1,6 +1,6 @@
 // import { HighFidelityAudio } from 'hifi-spatial-audio'; // https://github.com/highfidelity/Spatial-Audio-API-Examples/blob/main/experiments/nodejs/videochat-twilio/views/index.ejs
 // import { Point3D, HiFiCommunicator } from "hifi-spatial-audio";
-import { getNumRowsAndCols, getVirtualSpaceDimensions, clamp, linearScale } from './tools';
+import { clamp, linearScale } from './tools';
 // import { SignJWT } from 'jose/jwt/sign';
 // import { SignJWT } from 'jose/dist/browser/jwt/sign';
 
@@ -35,10 +35,10 @@ const FORWARD_ORIENTATION = {
     rollDegrees: 0
 };
 
- let userConfigurations = [ // https://github.com/highfidelity/Spatial-Audio-API-Examples/blob/f0fa461/experiments/web/videochat-tokbox/index.html#L75
-     null,
-     null,
-     { // index 2 (2 total participants) means there is 1 other participant
+let userConfigurations = [ // https://github.com/highfidelity/Spatial-Audio-API-Examples/blob/f0fa461/experiments/web/videochat-tokbox/index.html#L75
+    null,
+    null,
+    { // index 2 (2 total participants) means there is 1 other participant
         "positions": [
             new HighFidelityAudio.Point3D({ "x": 0, "y": 0, "z": 0 }),
         ],
@@ -122,30 +122,7 @@ const FORWARD_ORIENTATION = {
         ],
         "eachVideoStyle": { "width": "33%", "height": "33%" },
     },
-]
-
-/**
- * 
- * @param {object} virtualSpaceDimensions 
- * @param {number} numRows 
- * @param {number} numCols 
- * @returns {array}
- */
-function getPossiblePositions(virtualSpaceDimensions, numRows, numCols) {
-    // TODO: Clean up and document
-    const possiblePositions = [];
-    for (let i = -virtualSpaceDimensions.x / 2; i < virtualSpaceDimensions.x / 2; i += virtualSpaceDimensions.x / numCols) {
-        for (let j = -virtualSpaceDimensions.y / 2; j < virtualSpaceDimensions.y / 2; j += virtualSpaceDimensions.y / numRows) {
-            const coord = {
-                "x": i + virtualSpaceDimensions.x / numCols / 2,
-                "y": j + virtualSpaceDimensions.y / numRows / 2,
-                "z": 0
-            };
-            possiblePositions.push(new HighFidelityAudio.Point3D(coord));
-        }
-    }
-    return possiblePositions;
-}
+];
 
 /**
  * 
@@ -158,18 +135,19 @@ function getBounded(positionConfiguration) {
     let xMax = -9999;
     let yMin = 9999;
     let yMax = -9999;
-    for (let i = 0; i < possiblePositions.length; i++) {
-        if (possiblePositions[i].x < xMin) {
-            xMin = possiblePositions[i].x;
+    for (let i = 0; i < possiblePositions.length; i += 1) {
+        const pos = possiblePositions[i];
+        if (pos.x < xMin) {
+            xMin = pos.x;
         }
-        if (possiblePositions[i].x > xMax) {
-            xMax = possiblePositions[i].x;
+        if (pos.x > xMax) {
+            xMax = pos.x;
         }
-        if (possiblePositions[i].y < yMin) {
-            yMin = possiblePositions[i].y;
+        if (pos.y < yMin) {
+            yMin = pos.y;
         }
-        if (possiblePositions[i].y > yMax) {
-            yMax = possiblePositions[i].y;
+        if (pos.y > yMax) {
+            yMax = pos.y;
         }
     }
     console.log('getBounded', { xMin, xMax, yMin, yMax });
@@ -193,6 +171,7 @@ function updateStylePositions(spaceContainer, currentParticipantProvidedUserIds,
     providedUserIDsToVideoElementsMap.forEach((element, key, map) => {
         let idx = currentParticipantProvidedUserIds.indexOf(key);
         let position = positionConfiguration.positions[idx];
+        console.log({ idx, position });
 
         element.style.width = eachVideoStyle.width;
         element.style.height = eachVideoStyle.height;
@@ -221,8 +200,6 @@ function updateStylePositions(spaceContainer, currentParticipantProvidedUserIds,
  * @param {element} spaceContainer
  */
 function updatePositions(spaceContainer) {
-    // const containerWidth = spaceContainer.offsetWidth;
-    // const containerHeight = spaceContainer.offsetHeight;
     if (!hifiCommunicator) {
         return;
     }
@@ -237,13 +214,6 @@ function updatePositions(spaceContainer) {
         console.error(`Couldn't find \`myProvidedUserID\` ${myProvidedUserId} in \`currentParticipantProvidedUserIDs\`!`, currentParticipantProvidedUserIds);
         return;
     }
-    // const { numRows, numCols } = getNumRowsAndCols(numParticipants, containerWidth, containerHeight);
-    
-    // let virtualSpaceDimensions = getVirtualSpaceDimensions(numRows, numCols); // in meters
-    // const possiblePositions = getPossiblePositions(virtualSpaceDimensions, numRows, numCols);
-    
-    // let myPosition = possiblePositions[myIndex];
-    // console.log(`${possiblePositions.length} possible positions: ${JSON.stringify(possiblePositions, null, 2)}`);
     
     let positionConfiguration = userConfigurations[numParticipants];
     let myPosition = positionConfiguration.positions[myIndex];
@@ -252,7 +222,7 @@ function updatePositions(spaceContainer) {
         position: myPosition,
         orientationEuler: myOrientation, // new HighFidelityAudio.OrientationEuler3D(FORWARD_ORIENTATION),
     };
-    console.log('myVector', JSON.stringify(myVector, null, 2));
+    console.log('myVector', JSON.stringify(myVector, null, 2), { positionConfiguration });
     const userDataUpdated = hifiCommunicator.updateUserDataAndTransmit(myVector);
     console.log('updateUserDataAndTransmit', userDataUpdated);
     updateStylePositions(spaceContainer, currentParticipantProvidedUserIds, positionConfiguration, numParticipants);
