@@ -27,7 +27,13 @@ console.log({ options });
 var server = https.createServer(options, app)
 console.log({ server });
 
-var io = require('socket.io')(server)
+const io = require("socket.io")(server, {
+	cors: { // https://socket.io/docs/v4/handling-cors/
+	// Note: this also applies to localhost if your web application and your server are not served from the same port
+    origin: "*", // TODO: Fix to tighten security!
+    methods: ["GET", "POST"]
+  }
+});
 
 app.use(cors()) // https://stackoverflow.com/a/19743442/470749
 app.use(bodyParser.json())
