@@ -297,7 +297,8 @@ class Video extends Component {
 						if (searchVideo !== null) { // Without this check, it would be an empty square.
 							searchVideo.srcObject = event.stream
 						} else {
-							let main = document.getElementById('main')
+							const main = document.getElementById('main')
+							// TODO const wrapper = document.querySelectorAll('[data-userId=]')
 							let video = document.createElement('video')
 							video.classList.add('other-participant');
 							video.setAttribute('data-socket', socketListId)
@@ -306,6 +307,7 @@ class Video extends Component {
 							video.playsinline = true
 
 							main.appendChild(video)
+							// TODO wrapper.appendChild(video)
 						}
 					}
 
@@ -503,8 +505,10 @@ class Video extends Component {
 							</div>
 
 							<Row className="flex-container" style={{ margin: 0, padding: 0 }}>
-								<video className="my-video" ref={this.localVideoref} autoPlay muted></video>
-								<div id="main" className="other-participants"></div>
+								
+								<div id="main" className="other-participants">
+									<video className="my-video" ref={this.localVideoref} autoPlay muted></video>
+								</div>
 
 								<div className="control-panel">
 									<IconButton style={{ color: "#f44336" }} onClick={this.handleEndCall} title="Enable/disable call">

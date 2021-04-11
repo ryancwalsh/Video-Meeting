@@ -73,3 +73,7 @@ video.my-video-preview {
 .icon-button {
     color: #424242;
 }
+
+.positioned-participant {
+    position: absolute;
+}

@@ -33,6 +33,7 @@ export function linearScale(factor, minInput, maxInput, minOutput, maxOutput) {
  */
 export function getNumRowsAndCols(numParticipants, videoContainerWidth, videoContainerHeight) {
     // TODO: Make more dynamic, and make responsive to screen size.
+    // TODO: Check out https://github.com/highfidelity/Spatial-Audio-API-Examples/blob/f0fa461/experiments/web/videochat-tokbox/index.html#L75
     let numRows;
     let numCols;
     if (numParticipants === 1) {
