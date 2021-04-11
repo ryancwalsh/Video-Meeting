@@ -63,7 +63,7 @@ export function getNumRowsAndCols(numParticipants, videoContainerWidth, videoCon
  * @returns {object}
  */
 export function getVirtualSpaceDimensions(numRows, numCols) {
-    const virtualCellWidth = 200; // in meters // TODO
+    const virtualCellWidth = 2; // in meters // TODO
     const virtualCellHeight = virtualCellWidth * 9/16; // in meters
     const virtualSpaceDimensions = {
         x: numRows * virtualCellWidth,

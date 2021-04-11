@@ -43,6 +43,7 @@ const FORWARD_ORIENTATION = {
  * @returns {array}
  */
 function getPossiblePositions(virtualSpaceDimensions, numRows, numCols) {
+    // TODO: Clean up and document
     const possiblePositions = [];
     for (let i = -virtualSpaceDimensions.x / 2; i < virtualSpaceDimensions.x / 2; i += virtualSpaceDimensions.x / numCols) {
         for (let j = -virtualSpaceDimensions.y / 2; j < virtualSpaceDimensions.y / 2; j += virtualSpaceDimensions.y / numRows) {
@@ -55,6 +56,49 @@ function getPossiblePositions(virtualSpaceDimensions, numRows, numCols) {
         }
     }
     return possiblePositions;
+}
+
+/**
+ * 
+ * @param {array} possiblePositions 
+ * @param {object} virtualSpaceDimensions 
+ * @param {number} numParticipants 
+ * @param {number} numCols 
+ * @param {number} numRows 
+ * @param {number} containerHeight 
+ * @param {number} containerWidth 
+ */
+function updateStylePositions(possiblePositions, virtualSpaceDimensions, numParticipants, numCols, numRows, containerHeight, containerWidth) {
+    let eachVideoStyle = {
+        "width": `${100 / numCols}%`,
+        "height": `${100 / numRows}%`,
+    };
+    providedUserIDsToVideoElementsMap.forEach((value, key, map) => {
+        // TODO: Clean up and document
+        let idx = currentParticipantProvidedUserIds.indexOf(key);
+        if (idx === -1) {
+            console.error(`Couldn't find \`providedUserID\` \`${key}\` in \`currentParticipantProvidedUserIDs\`!`, currentParticipantProvidedUserIds);
+            return;
+        }
+        let position = possiblePositions[idx];
+        value.style.width = eachVideoStyle.width;
+        value.style.height = eachVideoStyle.height;
+        // `-1` term because we want higher `position.y` values to yield a video towards the top of the browser window
+        let topOffset = linearScale(-1 * position.y, -virtualSpaceDimensions.y / 2, virtualSpaceDimensions.y / 2, 0, containerHeight) - (value.offsetHeight / 2);
+        topOffset = clamp(topOffset, 0, containerHeight - value.offsetHeight);
+        if (numParticipants > 1) {
+            value.style.top = `${topOffset}px`;
+        } else {
+            value.style.top = "0";
+        }
+        let leftOffset = linearScale(position.x, -virtualSpaceDimensions.x / 2, virtualSpaceDimensions.x / 2, 0, containerWidth) - (value.offsetWidth / 2);
+        leftOffset = clamp(leftOffset, 0, containerWidth - value.offsetWidth);
+        if (numParticipants > 1) {
+            value.style.left = `${leftOffset}px`;
+        } else {
+            value.style.left = "0";
+        }
+    });
 }
 
 /**
@@ -91,35 +135,7 @@ function updatePositions(spaceContainer) {
         orientationEuler: new HighFidelityAudio.OrientationEuler3D(FORWARD_ORIENTATION),
     });
     console.log('updateUserDataAndTransmit', userDataUpdated);
-    let eachVideoStyle = {
-        "width": `${100 / numCols}%`,
-        "height": `${100 / numRows}%`,
-    };
-    providedUserIDsToVideoElementsMap.forEach((value, key, map) => {
-        let idx = currentParticipantProvidedUserIds.indexOf(key);
-        if (idx === -1) {
-            console.error(`Couldn't find \`providedUserID\` \`${key}\` in \`currentParticipantProvidedUserIDs\`!`, currentParticipantProvidedUserIds);
-            return;
-        }
-        let position = possiblePositions[idx];
-        value.style.width = eachVideoStyle.width;
-        value.style.height = eachVideoStyle.height;
-        // `-1` term because we want higher `position.y` values to yield a video towards the top of the browser window
-        let topOffset = linearScale(-1 * position.y, -virtualSpaceDimensions.y / 2, virtualSpaceDimensions.y / 2, 0, containerHeight) - (value.offsetHeight / 2);
-        topOffset = clamp(topOffset, 0, containerHeight - value.offsetHeight);
-        if (numParticipants > 1) {
-            value.style.top = `${topOffset}px`;
-        } else {
-            value.style.top = "0";
-        }
-        let leftOffset = linearScale(position.x, -virtualSpaceDimensions.x / 2, virtualSpaceDimensions.x / 2, 0, containerWidth) - (value.offsetWidth / 2);
-        leftOffset = clamp(leftOffset, 0, containerWidth - value.offsetWidth);
-        if (numParticipants > 1) {
-            value.style.left = `${leftOffset}px`;
-        } else {
-            value.style.left = "0";
-        }
-    });
+    // TODO updateStylePositions(possiblePositions, virtualSpaceDimensions, numParticipants, numCols, numRows, containerHeight, containerWidth);
 }
 
 /**
@@ -159,9 +175,11 @@ function onNewHiFiUserDataReceived(receivedHiFiAudioAPIDataArray, spaceContainer
     let newUserReceived = false;
     for (let i = 0; i < receivedHiFiAudioAPIDataArray.length; i += 1) {
         let currentProvidedVisitID = receivedHiFiAudioAPIDataArray[i].providedUserID;
+        // Or we could use hashedVisitID https://github.com/highfidelity/Spatial-Audio-API-Examples/blob/f0fa461/experiments/web/videochat-tokbox/index.html#L302
         if (currentParticipantProvidedUserIds.indexOf(currentProvidedVisitID) === -1) {
             console.log(`New HiFi User! Provided ID: ${currentProvidedVisitID}`);
             currentParticipantProvidedUserIds.push(currentProvidedVisitID);
+            participantConnected(currentProvidedVisitID, spaceContainer);
         }
     }
 

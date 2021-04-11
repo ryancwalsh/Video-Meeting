@@ -251,8 +251,12 @@ class Video extends Component {
 		}
 	}
 
+	getUniqueUserId = () => {
+		return `${this.state.username.replace(' ', '_')}_${guid()}`;
+	}
+
 	connectToSocketServer = async () => {
-		const uniqueUserId = guid();
+		const uniqueUserId = this.getUniqueUserId();
 		await connectToHiFi(document.getElementById('outputAudioEl'), document.getElementById('main'), uniqueUserId);
 		socket = io.connect(socketUrl, { secure: true })
 
@@ -274,7 +278,7 @@ class Video extends Component {
 
 			socket.on('user-joined', (id, clients) => {
 				console.log('user-joined', { clients, connections });
-				participantConnected(id, document.getElementById('main')); // TODO: Figure out what to pass instead of "id"
+				// participantConnected(id, document.getElementById('main')); // TODO: Figure out what to pass instead of "id"
 				clients.forEach((socketListId) => {
 					const connection = new RTCPeerConnection(peerConnectionConfig);
 					connections[socketListId] = connection;
