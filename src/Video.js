@@ -36,6 +36,50 @@ const peerConnectionConfig = {
 }
 var socket = null
 var socketId = null
+const audioSources = [
+	'samples/speech-sample.wav',
+	'samples/music.wav',
+];
+// Create an AudioContext
+let audioContext = new AudioContext();
+
+// Create a (first-order Ambisonic) Resonance Audio scene and pass it the AudioContext.
+// Initialize scene and create Source(s).
+let scene = new window.ResonanceAudio(audioContext, {
+	ambisonicOrder: 1,
+});
+// Connect the scene’s binaural output to stereo out.
+scene.output.connect(audioContext.destination);
+// By default, room dimensions are undefined (0m x 0m x 0m). https://resonance-audio.github.io/resonance-audio/develop/web/getting-started
+const roomDimensions = {
+  width: 25,
+  height: 25,
+  depth: 25,
+};
+// Room materials have different acoustic reflectivity.
+const roomMaterials = {
+  // Room wall materials. https://resonance-audio.github.io/resonance-audio/develop/web/getting-started
+  left: 'marble',
+  right: 'marble',
+  front: 'marble',
+  back: 'marble',
+  down: 'marble', // Room floor
+  up: 'marble', // Room ceiling
+};
+scene.setRoomProperties(roomDimensions, roomMaterials);
+scene.output.connect(audioContext.destination);
+const positions = [
+	{
+		x: -20,
+		y: 1,
+		z: 1
+	},
+	{
+		x: 20,
+		y: -1,
+		z: -1
+	},
+];
 
 const randomUsername = window.navigator.platform; // TODO faker.name.firstName(); // https://www.npmjs.com/package/faker // TODO: Use value from cookie instead if present.
 
@@ -323,6 +367,20 @@ class Video extends Component {
 						video.autoplay = true;
 						video.playsinline = true;
 						this.placeVideo(video, participantUserId);
+						const audioElement = document.createElement('audio'); // TODO Remove
+						audioElement.src = audioSources.pop();
+						audioElement.crossOrigin = 'anonymous';
+						audioElement.load();
+						audioElement.play();
+						audioElement.loop = true;
+						document.body.append(audioElement);
+						console.log({ audioElement });
+						const mediaElementSource = audioContext.createMediaElementSource(audioElement);
+						const soundSource = scene.createSource();
+						const { x, y, z } = positions.pop();
+						console.log({ mediaElementSource, x, y, z });
+						soundSource.setPosition(x, y, z);
+						mediaElementSource.connect(soundSource.input);
 					}
 				}
 
