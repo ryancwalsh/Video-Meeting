@@ -15,8 +15,6 @@ import StopScreenShareIcon from '@material-ui/icons/StopScreenShare'
 import CallEndIcon from '@material-ui/icons/CallEnd'
 import ChatIcon from '@material-ui/icons/Chat'
 
-import { connectToHiFi, toggleMicInputMute } from './HiFi/helper';
-
 import { message } from 'antd'
 import 'antd/dist/antd.css'
 
@@ -110,8 +108,7 @@ class Video extends Component {
 
 	getUserMedia = () => {
 		if ((this.state.video && this.videoAvailable) || (this.state.mic && this.audioAvailable)) {
-			const audio = false; // Make it always `false` regardless of mute state because audio will be handled via HiFi API.
-			mediaDevices.getUserMedia({ video: this.state.video, audio })
+			mediaDevices.getUserMedia({ video: this.state.video, audio: this.state.mic })
 				.then(this.getUserMediaSuccess)
 				.then((stream) => {})
 				.catch((e) => console.error(e))
@@ -267,7 +264,6 @@ class Video extends Component {
 
 	connectToSocketServer = async () => {
 		const uniqueUserId = this.getUniqueUserId();
-		await connectToHiFi(document.getElementById('outputAudioEl'), document.getElementById('main'), uniqueUserId);
 		socket = io.connect(socketUrl, { secure: true })
 
 		socket.on('signal', this.gotMessageFromServer);
@@ -381,14 +377,20 @@ class Video extends Component {
 	}
 
 	handleVideo = () => this.setState({ video: !this.state.video }, () => this.getUserMedia())
-	toggleMicInputMute = () => this.setState({ mic: !this.state.mic }, () => toggleMicInputMute())
-		
-	toggleSpeakersOutputMute = () => this.setState({ speakers: !this.state.speakers }, () => {
-		const outputAudioEl = document.getElementById('outputAudioEl');
-		outputAudioEl.muted = !outputAudioEl.muted;
-		console.log(`Set output mute status to \`${outputAudioEl.muted}\``);
-		// toggleOutputMuteButton.innerHTML = `Toggle Output Mute (currently ${outputAudioEl.muted ? "muted" : "unmuted"})`;
-	})
+
+	toggleMicInputMute = () => this.setState({ mic: !this.state.mic }, () => this.getUserMedia())
+
+	toggleSpeakersOutputMute = () => {
+		// TODO: Fix this broken function!
+		console.log('toggleSpeakersOutputMute original state', this.state.speakers);
+		const newSpeakerState = !this.state.speakers;
+		this.setState({ speakers: newSpeakerState }, () => {
+			const videoElements = document.querySelectorAll('video');
+			console.log('toggleSpeakersOutputMute', { videoElements });
+			videoElements.forEach(videoElement => videoElement.muted = newSpeakerState);
+			console.log(`Set speakers output to \`${newSpeakerState}\``);
+		})
+	}
 
 	handleScreen = () => this.setState({ screen: !this.state.screen }, () => this.getDisplayMedia())
 
