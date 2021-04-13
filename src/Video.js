@@ -381,13 +381,13 @@ class Video extends Component {
 	toggleMicInputMute = () => this.setState({ mic: !this.state.mic }, () => this.getUserMedia())
 
 	toggleSpeakersOutputMute = () => {
-		// TODO: Fix this broken function!
 		console.log('toggleSpeakersOutputMute original state', this.state.speakers);
 		const newSpeakerState = !this.state.speakers;
+		const newMuteStatus = !newSpeakerState;
 		this.setState({ speakers: newSpeakerState }, () => {
 			const videoElements = document.querySelectorAll('video');
 			console.log('toggleSpeakersOutputMute', { videoElements });
-			videoElements.forEach(videoElement => videoElement.muted = newSpeakerState);
+			videoElements.forEach(videoElement => videoElement.muted = newMuteStatus);
 			console.log(`Set speakers output to \`${newSpeakerState}\``);
 		})
 	}
