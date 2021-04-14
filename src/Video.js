@@ -253,10 +253,9 @@ class Video extends Component {
 		socket.on('signal', this.gotMessageFromServer);
 
 		socket.on('connect', () => {
-			console.log('connect');
-			socketId = socket.id
-			socket.emit('set-username', socketId, this.state.username); // https://socket.io/docs/v4/emitting-events/#Basic-emit
-			socket.emit('join-call', window.location.href);
+			socketId = socket.id;
+			console.log('connect', socketId, this.state.username, window.location.href);
+			socket.emit('joined-call', socketId, this.state.username, window.location.href); // https://socket.io/docs/v4/emitting-events/#Basic-emit
 		});
 
 		socket.on('chat-message', this.addMessage);
@@ -273,8 +272,8 @@ class Video extends Component {
 			console.log({ data });
 		});
 
-		socket.on('user-joined', (id, clients, participantUsername) => {
-			console.log('user-joined', { clients, connections, participantUsername });
+		socket.on('other-participant-joined', (id, clients, participantUsername) => {
+			console.log('other-participant-joined', { clients, connections, participantUsername });
 			clients.forEach((socketListId) => {
 				console.log('clients.forEach socketListId', socketListId);
 				const connection = new RTCPeerConnection(peerConnectionConfig);

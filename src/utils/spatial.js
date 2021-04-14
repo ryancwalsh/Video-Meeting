@@ -72,7 +72,7 @@ function scaleCoordinates(currentDiv, roomDimensions, container) {
         y,
         z: 1
     };
-    console.log({ videoCenter, containerCenter }, x, y);
+    // console.log({ videoCenter, containerCenter }, x, y);
     return result;
 }
 
@@ -117,7 +117,8 @@ export function createDraggableDiv(participantUsername, socketListId, video) {
 	div.style.width = `${width}px`;
     div.style.background = color;
     div.classList.add(draggable);
-	div.setAttribute('data-participantUsername', participantUsername);
+    div.setAttribute('data-participantUsername', participantUsername);
+    div.setAttribute('data-socketlistid', socketListId);
 	left += width;
 
 	document.getElementById('main').appendChild(div);

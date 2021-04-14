@@ -59,15 +59,11 @@ const socketIdToUsernameMap = new Map();
 
 io.on('connection', (socket) => {
 
-	socket.on('set-username', (socketId, username) => {
-		// socket.data.username = username; // https://socket.io/docs/v4/server-socket-instance/#Socket-data
+	socket.on('joined-call', (socketId, username, path) => {
 		socketIdToUsernameMap.set(socketId, username);
-		console.log('set-username', username, socketId, socketIdToUsernameMap);
-	});
-
-	socket.on('join-call', (path) => {
-		console.log('join-call', {socket, path});
-		if(connections[path] === undefined){
+		console.log('joined-call', { socketId, username, path }, socketIdToUsernameMap);
+		// socket.data.username = username; // https://socket.io/docs/v4/server-socket-instance/#Socket-data
+		if (connections[path] === undefined) {
 			connections[path] = []
 		}
 		connections[path].push(socket.id)
@@ -75,7 +71,7 @@ io.on('connection', (socket) => {
 		timeOnline[socket.id] = new Date()
 
 		for(let a = 0; a < connections[path].length; ++a){
-			io.to(connections[path][a]).emit("user-joined", socket.id, connections[path], socketIdToUsernameMap.get(socket.id))
+			io.to(connections[path][a]).emit("other-participant-joined", socket.id, connections[path], socketIdToUsernameMap.get(socket.id));
 		}
 
 		if(messages[path] !== undefined){
@@ -123,6 +119,7 @@ io.on('connection', (socket) => {
 
 	socket.on('disconnect', () => {
 		console.log('disconnect');
+		socketIdToUsernameMap.delete(socket.id);
 		var diffTime = Math.abs(timeOnline[socket.id] - new Date())
 		var key
 		for (const [k, v] of JSON.parse(JSON.stringify(Object.entries(connections)))) {
