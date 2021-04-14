@@ -1,8 +1,6 @@
 import React, { Component } from 'react'
 import io from 'socket.io-client'
 import faker from "faker"
-import { guid } from './utils/rand';
-
 import {IconButton, Badge, Input, Button} from '@material-ui/core'
 import VideocamIcon from '@material-ui/icons/Videocam'
 import VideocamOffIcon from '@material-ui/icons/VideocamOff'
@@ -14,13 +12,14 @@ import ScreenShareIcon from '@material-ui/icons/ScreenShare'
 import StopScreenShareIcon from '@material-ui/icons/StopScreenShare'
 import CallEndIcon from '@material-ui/icons/CallEnd'
 import ChatIcon from '@material-ui/icons/Chat'
-
 import { message } from 'antd'
 import 'antd/dist/antd.css'
-
 import { Row } from 'reactstrap'
 import Modal from 'react-bootstrap/Modal'
 import 'bootstrap/dist/css/bootstrap.css'
+
+import { guid } from './utils/rand';
+import { createDraggableDiv } from './utils/spatial';
 import "./Video.css"
 
 const socketUrl = process.env.REACT_APP_SOCKET_URL; // https://stackoverflow.com/a/56668716/470749
@@ -36,95 +35,6 @@ const peerConnectionConfig = {
 }
 var socket = null
 var socketId = null
-// Create an AudioContext
-let audioContext = new AudioContext();
-
-// Create a (first-order Ambisonic) Resonance Audio scene and pass it the AudioContext.
-// Initialize scene and create Source(s).
-let scene = new window.ResonanceAudio(audioContext, {
-	ambisonicOrder: 1,
-});
-// Connect the scene’s binaural output to stereo out.
-scene.output.connect(audioContext.destination);
-// By default, room dimensions are undefined (0m x 0m x 0m). https://resonance-audio.github.io/resonance-audio/develop/web/getting-started
-const roomDimensions = {
-  width: 25,
-  height: 25,
-  depth: 25,
-};
-// Room materials have different acoustic reflectivity.
-const roomMaterials = {
-  // Room wall materials. https://resonance-audio.github.io/resonance-audio/develop/web/getting-started
-  left: 'transparent',
-  right: 'transparent',
-  front: 'transparent',
-  back: 'transparent',
-  down: 'transparent', // Room floor
-  up: 'transparent', // Room ceiling
-};
-scene.setRoomProperties(roomDimensions, roomMaterials);
-scene.output.connect(audioContext.destination);
-window.pos = [];
-const positions = [
-	{
-		x: -2,
-		y: 1,
-		z: 1
-	},
-	{
-		x: 2,
-		y: 1,
-		z: 1
-	},
-];
-
-var isMouseDown = false;
-let left = 0;
-const width = 500;
-const colors = ['red', 'blue', 'green'];
-let currentDiv;
-
-function createDraggableDiv(color, content) {
-	console.log('createDraggableDiv(color, content)', color, content);
-	const div = document.createElement("div");
-	div.style.position = "absolute";
-	div.style.left = `${left}px`;
-	div.style.top = "0px";
-	div.style.width = `${width}px`;
-	// div.style.height = "90px";
-	div.style.background = color;
-	left += width;
-
-	document.getElementById('main').appendChild(div);
-	div.append(content);
-
-	div.addEventListener('mousedown', function(e) {
-		isMouseDown = true;
-		const offset = [
-			div.offsetLeft - e.clientX,
-			div.offsetTop - e.clientY
-		];
-		div.setAttribute('data-offset', JSON.stringify(offset));
-		currentDiv = div;
-	}, true);
-}
-
-document.addEventListener('mouseup', function() {
-    isMouseDown = false;
-}, true);
-
-document.addEventListener('mousemove', function(event) {
-    event.preventDefault();
-    if (isMouseDown && currentDiv) {
-    	const mousePosition = {
-            x : event.clientX,
-            y : event.clientY
-        };
-        const offset = JSON.parse(currentDiv.getAttribute('data-offset'));
-        currentDiv.style.left = (mousePosition.x + offset[0]) + 'px';
-        currentDiv.style.top  = (mousePosition.y + offset[1]) + 'px';
-    }
-}, true);
 
 const randomUsername = window.navigator.platform; // TODO faker.name.firstName(); // https://www.npmjs.com/package/faker // TODO: Use value from cookie instead if present.
 
@@ -341,16 +251,6 @@ class Video extends Component {
 		return `${this.state.username.replace(' ', '_')}_${guid()}`;
 	}
 
-	placeVideo = (video, uniqueUserId) => {
-		const wrapper = document.querySelector(`#main div[data-userid="${uniqueUserId}"]`);
-		console.log({ wrapper });
-		if (wrapper) {
-			wrapper.prepend(video);
-		} else {
-			document.getElementById('main').append(video);
-		}
-	}
-
 	connectToSocketServer = async () => {
 		const uniqueUserId = this.getUniqueUserId();
 		socket = io.connect(socketUrl, { secure: true })
@@ -411,34 +311,7 @@ class Video extends Component {
 						video.srcObject = event.stream;
 						video.autoplay = true;
 						video.playsinline = true;
-						// video.muted = true;
-						// this.placeVideo(video, participantUserId);
-						// const audioElement = document.createElement('audio'); // TODO Remove
-						// const newStream = new MediaStream();
-						// event.stream.getTracks().forEach(track => {
-						// 	if (track.kind === 'audio') { // https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamTrack
-						// 		const newTrack = track.clone();
-						// 		newStream.addTrack(newTrack);
-						// 		track.enabled = false;
-						// 	}
-						// });
-						// audioElement.src = newStream;
-						// audioElement.crossOrigin = 'anonymous';
-						// audioElement.load();
-						// audioElement.play();
-						// document.body.append(audioElement);
-						// console.log({ audioElement });
-						// const mediaElementSource = audioContext.createMediaElementSource(audioElement);
-						const color = colors.pop();
-						console.log('popped color', color);
-						createDraggableDiv(color, video);
-						const mediaElementSource = audioContext.createMediaStreamSource(event.stream);
-						const soundSource = scene.createSource();
-						const { x, y, z } = positions.pop();
-						console.log({ mediaElementSource, x, y, z });
-						soundSource.setPosition(x, y, z);
-						window.pos.push(soundSource);
-						mediaElementSource.connect(soundSource.input);
+						createDraggableDiv(participantUserId, video);
 					}
 				}
 
