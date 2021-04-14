@@ -4,6 +4,7 @@ let left = 0;
 const width = 500;
 const colors = ['red', 'blue', 'green'];
 let currentDiv;
+
 // By default, room dimensions are undefined (0m x 0m x 0m). https://resonance-audio.github.io/resonance-audio/develop/web/getting-started
 const roomDimensions = {
   width: 25,
@@ -31,7 +32,7 @@ let scene = new window.ResonanceAudio(audioContext, {
 	ambisonicOrder: 1,
 });
 
-scene.setRoomProperties(roomDimensions, roomMaterials);
+// scene.setRoomProperties(roomDimensions, roomMaterials);
 // Connect the scene’s binaural output to stereo out.
 scene.output.connect(audioContext.destination);
 
@@ -50,7 +51,7 @@ function getXY (event, offsetJson) {
 function setSoundCoordinates(participantUserId, point) {
 	const { x, y, z } = point;
 	const soundSource = soundSources[participantUserId];
-	soundSource.setPosition(x, y, z);
+	soundSource.setPosition(x, y, z); // https://github.com/resonance-audio/resonance-audio-web-sdk/blob/c69e41dae836aea5b41cf4e9e51efcd96e5d0bb6/src/source.js#L178
 	console.log(soundSource, x, y, z);
 }
 
