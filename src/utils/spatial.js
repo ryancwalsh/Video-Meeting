@@ -5,6 +5,10 @@ const width = 500;
 const colors = ['red', 'blue', 'green'];
 export const draggable = 'draggable';
 let currentDiv;
+const audioSources = [
+	'samples/1.wav',
+	'samples/2.wav',
+];
 
 // By default, room dimensions are undefined (0m x 0m x 0m). https://resonance-audio.github.io/resonance-audio/develop/web/getting-started
 const roomDimensions = {
@@ -129,6 +133,7 @@ function getWrapper(socketId, participantUsername) {
     div.classList.add(draggable);
     div.setAttribute('data-participantUsername', participantUsername);
     div.setAttribute('data-socketid', socketId);
+    left += width;
     return div;
 }
 
@@ -136,20 +141,36 @@ export function createDraggableDiv(socketId, stream, participantUsername) {
     console.log('createDraggableDiv', socketId, participantUsername);
     const video = createVideo(socketId, stream, participantUsername);
     const div = getWrapper(socketId, participantUsername);
-	left += width;
 
-	document.getElementById('main').appendChild(div);
+    document.getElementById('main').appendChild(div);
     div.append(video);
     const usernameDiv = document.createElement("div");
     usernameDiv.classList.add('username');
     usernameDiv.append(participantUsername);
     div.append(usernameDiv);
     
-    const mediaElementSource = audioContext.createMediaStreamSource(video.srcObject);
     const soundSource = scene.createSource();
     soundSources[socketId] = soundSource;
-    mediaElementSource.connect(soundSource.input);
-    console.log('mediaElementSource', mediaElementSource);
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // TODO: Remove this temporary section about audioElement.
+    const audioElement = document.createElement('audio'); // TODO Remove. See https://github.com/ryancwalsh/videochat/commit/f20c027d4daaf002ec13872300f58a2d70f10bf3
+    const audioSrc = audioSources.pop();
+    console.log('audioSrc', audioSrc);
+    audioElement.src = audioSrc;
+    audioElement.crossOrigin = 'anonymous';
+    audioElement.load();
+    audioElement.play();
+    audioElement.loop = true;
+    div.append(audioElement);
+    const mediaElementAudioSourceNode = audioContext.createMediaElementSource(audioElement);
+    mediaElementAudioSourceNode.connect(soundSource.input);
+    console.log('mediaElementAudioSourceNode', mediaElementAudioSourceNode);
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // TODO: Uncomment this section. https://github.com/resonance-audio/resonance-audio-web-sdk/issues/34
+    // const mediaStreamAudioSourceNode = audioContext.createMediaStreamSource(video.srcObject);
+    // mediaStreamAudioSourceNode.connect(soundSource.input);
+    // console.log('mediaStreamAudioSourceNode', mediaStreamAudioSourceNode);
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 }
 
 document.addEventListener('mousedown', function(event) {
