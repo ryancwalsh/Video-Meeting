@@ -19,23 +19,18 @@ import Modal from 'react-bootstrap/Modal'
 import 'bootstrap/dist/css/bootstrap.css'
 
 // import { guid } from './utils/rand';
-import { createDraggableDiv, draggable } from './utils/spatial';
+import { draggable } from './utils/spatial';
 import { getSilentBlackStream } from './utils/video';
+import { someFuncA, someFuncB } from './utils/connections';
 import "./Video.css"
 
 const socketUrl = process.env.REACT_APP_SOCKET_URL; // https://stackoverflow.com/a/56668716/470749
 
 console.log({ socketUrl });
 
-var connections = {}
-const peerConnectionConfig = {
-	'iceServers': [ // https://stackoverflow.com/a/20134888/470749
-		// { 'urls': 'stun:stun.services.mozilla.com' },
-		{ 'urls': 'stun:stun.l.google.com:19302' },
-	]
-}
-var socket = null
-var mySocketId = null
+var connections = {};
+var socket = null;
+var mySocketId = null;
 
 const randomUsername = window.navigator.platform; // TODO faker.name.firstName(); // https://www.npmjs.com/package/faker // TODO: Use value from cookie instead if present.
 
@@ -249,56 +244,11 @@ class Video extends Component {
 	otherParticipantJoined = (socket, otherParticipantSocketId, clients, otherParticipantUsername) => {
 		console.log('other-participant-joined', { clients, connections, otherParticipantUsername });
 		clients.forEach((socketListId) => {
-			console.log('clients.forEach socketListId', socketListId);
-			const connection = new RTCPeerConnection(peerConnectionConfig);
-			// console.log({ connection });
-			connections[socketListId] = connection;
-			// Wait for their ice candidate
-			connection.onicecandidate = function (event) {
-				if (event.candidate != null) {
-					socket.emit('signal', socketListId, JSON.stringify({ 'ice': event.candidate }))
-				}
-			}
-
-			// Wait for their video stream
-			connection.onaddstream = (event) => {
-				console.log('onaddstream', { event });
-				// TODO mute button, full screen button
-				var searchVideo = document.querySelector(`[data-socketlistid="${socketListId}"]`)
-				if (searchVideo !== null) { // Without this check, it would be an empty square.
-					searchVideo.srcObject = event.stream;
-				} else {
-					createDraggableDiv(socketListId, event.stream, otherParticipantUsername);
-				}
-			}
-
-			// Add the local video stream
-			if (!(window.localStream !== undefined && window.localStream !== null)) {
-				window.localStream = getSilentBlackStream();
-			}
-			connection.addStream(window.localStream);
+			someFuncB(socketListId, socket, connections, otherParticipantUsername);
 		})
 
 		if (otherParticipantSocketId === mySocketId) {
-			for (let id2 in connections) {
-				if (id2 === mySocketId) {
-					continue;
-				}
-				
-				try {
-					connections[id2].addStream(window.localStream)
-				} catch (error) {
-					console.error(error);
-					}
-	
-				connections[id2].createOffer().then((description) => {
-					connections[id2].setLocalDescription(description)
-						.then(() => {
-							socket.emit('signal', id2, JSON.stringify({ 'sdp': connections[id2].localDescription }))
-						})
-						.catch(e => console.error(e))
-				})
-			}
+			someFuncA(socket, connections, mySocketId);
 		}
 	}
 
