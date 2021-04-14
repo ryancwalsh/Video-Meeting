@@ -51,7 +51,7 @@ function getXY (event, offsetJson) {
 
 function setSoundCoordinates(participantUserId, point) {
 	const { x, y, z } = point;
-	const soundSource = soundSources[participantUserId];
+	const soundSource = soundSources[participantUserId]; // TODO: Fix the bug where participantUserId collides.
 	soundSource.setPosition(x, y, z); // https://github.com/resonance-audio/resonance-audio-web-sdk/blob/c69e41dae836aea5b41cf4e9e51efcd96e5d0bb6/src/source.js#L178
 	console.log(soundSource, x, y, z);
 }
@@ -59,14 +59,16 @@ function setSoundCoordinates(participantUserId, point) {
 function scaleCoordinates(currentDiv, roomDimensions, container) {
     const videoCenter = getCenterCoordinates(currentDiv);
     const containerCenter = getCenterCoordinates(container);
-    const x = (videoCenter.x - containerCenter.x) / containerCenter.x * roomDimensions.width;
-    const y = (videoCenter.y - containerCenter.y) / containerCenter.y * roomDimensions.height * -1;
+    const xDiff = videoCenter.x - containerCenter.x;
+    const yDiff = videoCenter.y - containerCenter.y;
+    const x = +(xDiff / containerCenter.x * roomDimensions.width).toFixed(2);
+    const y = +(yDiff / containerCenter.y * roomDimensions.height * -1).toFixed(2);
     const result = {
         x,
         y,
         z: 1
     };
-    console.log({ videoCenter, containerCenter, result });
+    console.log({ videoCenter, containerCenter }, x, y);
     return result;
 }
 
@@ -130,7 +132,7 @@ document.addEventListener('mousedown', function(event) {
     // console.log('mousedown', event.target, event);
     if (event.target.classList.contains(draggable)) {
         currentDiv = event.target;
-        console.log('mousedown', currentDiv.style.background, currentDiv.getAttribute('data-participantUserId'));
+        console.log('mousedown', currentDiv.style.background, currentDiv.getAttribute('data-participantUserId'), event);
         const xy = getRestrictedPosition(currentDiv, event);
         currentDiv.setAttribute('data-offset', JSON.stringify(xy));
     }
