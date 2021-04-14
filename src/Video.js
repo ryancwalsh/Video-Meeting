@@ -20,6 +20,7 @@ import 'bootstrap/dist/css/bootstrap.css'
 
 // import { guid } from './utils/rand';
 import { createDraggableDiv, draggable } from './utils/spatial';
+import { getSilentBlackStream } from './utils/video';
 import "./Video.css"
 
 const socketUrl = process.env.REACT_APP_SOCKET_URL; // https://stackoverflow.com/a/56668716/470749
@@ -152,8 +153,7 @@ class Video extends Component {
 					tracks.forEach(track => track.stop())
 				} catch(e) { console.error(e) }
 
-				let blackSilence = (...args) => new MediaStream([this.black(...args), this.silence()])
-				window.localStream = blackSilence()
+				window.localStream = getSilentBlackStream();
 				this.localVideoref.current.srcObject = window.localStream
 
 				for (let id in connections) {
@@ -215,11 +215,10 @@ class Video extends Component {
 					tracks.forEach(track => track.stop())
 				} catch(e) { console.error(e) }
 
-				let blackSilence = (...args) => new MediaStream([this.black(...args), this.silence()])
-				window.localStream = blackSilence()
-				this.localVideoref.current.srcObject = window.localStream
+				window.localStream = getSilentBlackStream();
+				this.localVideoref.current.srcObject = window.localStream;
 
-				this.getUserMedia()
+				this.getUserMedia();
 			})
 		})
 	}
@@ -274,14 +273,10 @@ class Video extends Component {
 			}
 
 			// Add the local video stream
-			if (window.localStream !== undefined && window.localStream !== null) {
-				connection.addStream(window.localStream)
-			} else {
-				// TODO: Reduce duplication with other section like this.
-				let blackSilence = (...args) => new MediaStream([this.black(...args), this.silence()])
-				window.localStream = blackSilence()
-				connection.addStream(window.localStream)
+			if (!(window.localStream !== undefined && window.localStream !== null)) {
+				window.localStream = getSilentBlackStream();
 			}
+			connection.addStream(window.localStream);
 		})
 
 		if (otherParticipantSocketId === mySocketId) {
@@ -337,20 +332,7 @@ class Video extends Component {
 		);
 	}
 
-	silence = () => {
-		let ctx = new AudioContext()
-		let oscillator = ctx.createOscillator()
-		let dst = oscillator.connect(ctx.createMediaStreamDestination())
-		oscillator.start()
-		ctx.resume()
-		return Object.assign(dst.stream.getAudioTracks()[0], { enabled: false })
-	}
-	black = ({ width = 640, height = 480 } = {}) => {
-		let canvas = Object.assign(document.createElement("canvas"), { width, height })
-		canvas.getContext('2d').fillRect(0, 0, width, height)
-		let stream = canvas.captureStream()
-		return Object.assign(stream.getVideoTracks()[0], { enabled: false })
-	}
+
 
 	handleVideo = () => this.setState({ video: !this.state.video }, () => this.getUserMedia())
 
