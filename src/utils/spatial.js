@@ -38,10 +38,10 @@ function getXY (event, offsetJson) {
 		x : event.clientX,
 		y : event.clientY
 	};
-	const offset = JSON.parse(offsetJson);
+    const offset = JSON.parse(offsetJson);
 	return {
-		x: mousePosition.x + offset[0],
-		y: mousePosition.y + offset[1]
+		x: mousePosition.x + offset.x,
+		y: mousePosition.y + offset.y
 	}
 }
 
@@ -85,10 +85,10 @@ export function createDraggableDiv(participantUserId, video) {
 
 	div.addEventListener('mousedown', function(e) {
 		isMouseDown = true;
-		const offset = [
-			div.offsetLeft - e.clientX,
-			div.offsetTop - e.clientY
-		];
+		const offset = {
+			x: div.offsetLeft - e.clientX,
+			y: div.offsetTop - e.clientY
+		};
 		div.setAttribute('data-offset', JSON.stringify(offset));
 		currentDiv = div;
     }, true);
