@@ -1,7 +1,7 @@
 // require('dotenv').config(); // https://www.npmjs.com/package/dotenv
 const express = require('express')
 var https = require('https');
-var fs    = require('fs');
+var fs = require('fs');
 var cors = require('cors')
 const app = express()
 const bodyParser = require('body-parser')
@@ -29,19 +29,19 @@ console.log({ server });
 
 const io = require("socket.io")(server, {
 	cors: { // https://socket.io/docs/v4/handling-cors/
-	// Note: this also applies to localhost if your web application and your server are not served from the same port
-    origin: "*", // TODO: Fix to tighten security!
-    methods: ["GET", "POST"]
-  }
+		// Note: this also applies to localhost if your web application and your server are not served from the same port
+		origin: "*", // TODO: Fix to tighten security!
+		methods: ["GET", "POST"]
+	}
 });
 
 app.use(cors()) // https://stackoverflow.com/a/19743442/470749
 app.use(bodyParser.json())
 
-if(process.env.NODE_ENV==='production'){
-	app.use(express.static(__dirname+"/build"))
+if (process.env.NODE_ENV === 'production') {
+	app.use(express.static(__dirname + "/build"))
 	app.get("*", (req, res) => {
-		res.sendFile(path.join(__dirname+"/build/index.html"))
+		res.sendFile(path.join(__dirname + "/build/index.html"))
 	})
 }
 const port = process.env.PORT || 4001;
@@ -94,7 +94,7 @@ function disconnect(socket) {
 				for (let a = 0; a < connections[key].length; ++a) {
 					io.to(connections[key][a]).emit("user-left", socket.id)
 				}
-		
+
 				var index = connections[key].indexOf(socket.id)
 				connections[key].splice(index, 1)
 
@@ -115,8 +115,8 @@ function sendChatMessage(socket, data, sender) {
 	var key;
 	var ok = false;
 	for (const [k, v] of Object.entries(connections)) {
-		for(let a = 0; a < v.length; ++a){
-			if(v[a] === socket.id){
+		for (let a = 0; a < v.length; ++a) {
+			if (v[a] === socket.id) {
 				key = k
 				ok = true
 			}
