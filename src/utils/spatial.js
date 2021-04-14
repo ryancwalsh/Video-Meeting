@@ -151,26 +151,10 @@ export function createDraggableDiv(socketId, stream, participantUsername) {
     
     const soundSource = scene.createSource();
     soundSources[socketId] = soundSource;
-    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    // TODO: Remove this temporary section about audioElement.
-    const audioElement = document.createElement('audio'); // TODO Remove. See https://github.com/ryancwalsh/videochat/commit/f20c027d4daaf002ec13872300f58a2d70f10bf3
-    const audioSrc = audioSources.pop();
-    console.log('audioSrc', audioSrc);
-    audioElement.src = audioSrc;
-    audioElement.crossOrigin = 'anonymous';
-    audioElement.load();
-    audioElement.play();
-    audioElement.loop = true;
-    div.append(audioElement);
-    const mediaElementAudioSourceNode = audioContext.createMediaElementSource(audioElement);
-    mediaElementAudioSourceNode.connect(soundSource.input);
-    console.log('mediaElementAudioSourceNode', mediaElementAudioSourceNode);
-    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    // TODO: Uncomment this section. https://github.com/resonance-audio/resonance-audio-web-sdk/issues/34
-    // const mediaStreamAudioSourceNode = audioContext.createMediaStreamSource(video.srcObject);
-    // mediaStreamAudioSourceNode.connect(soundSource.input);
-    // console.log('mediaStreamAudioSourceNode', mediaStreamAudioSourceNode);
-    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    const streamClone = stream.clone();
+    video.muted = true;
+    const mediaStreamAudioSourceNode = audioContext.createMediaStreamSource(streamClone); // https://github.com/resonance-audio/resonance-audio-web-sdk/issues/34
+    mediaStreamAudioSourceNode.connect(soundSource.input);
 }
 
 document.addEventListener('mousedown', function(event) {
