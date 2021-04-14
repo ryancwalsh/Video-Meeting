@@ -425,8 +425,10 @@ class Video extends Component {
 								)) : <p>No message yet</p>}
 							</Modal.Body>
 							<Modal.Footer className="div-send-msg">
-								<Input placeholder="Message" value={this.state.message} onChange={e => this.handleMessage(e)} />
-								<Button variant="contained" color="primary" onClick={this.sendMessage}>Send</Button>
+								<form onSubmit={event => { event.preventDefault(); this.sendMessage(event) }}>
+									<Input placeholder="Message" value={this.state.message} onChange={e => this.handleMessage(e)} autoFocus />
+									<Button variant="contained" color="primary" type="submit">Send</Button>
+								</form>
 							</Modal.Footer>
 						</Modal>
 
