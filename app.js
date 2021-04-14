@@ -108,6 +108,34 @@ function disconnect(socket) {
 	}
 }
 
+function sendChatMessage(socket, data, sender) {
+	data = sanitizeString(data)
+	sender = sanitizeString(sender)
+
+	var key;
+	var ok = false;
+	for (const [k, v] of Object.entries(connections)) {
+		for(let a = 0; a < v.length; ++a){
+			if(v[a] === socket.id){
+				key = k
+				ok = true
+			}
+		}
+	}
+
+	if (ok === true) {
+		if (messages[key] === undefined) {
+			messages[key] = []
+		}
+		messages[key].push({ "sender": sender, "data": data, "socket-id-sender": socket.id });
+		console.log("message", key, ":", sender, data);
+
+		for (let a = 0; a < connections[key].length; ++a) {
+			io.to(connections[key][a]).emit("chat-message", data, sender, socket.id)
+		}
+	}
+}
+
 io.on('connection', (socket) => {
 
 	socket.on('joined-call', (socketId, username, path) => joinedCall(socket, socketId, username, path));
@@ -117,33 +145,7 @@ io.on('connection', (socket) => {
 		io.to(toId).emit('signal', socket.id, message)
 	})
 
-	socket.on('chat-message', (data, sender) => {
-		data = sanitizeString(data)
-		sender = sanitizeString(sender)
-
-		var key
-		var ok = false
-		for (const [k, v] of Object.entries(connections)) {
-			for(let a = 0; a < v.length; ++a){
-				if(v[a] === socket.id){
-					key = k
-					ok = true
-				}
-			}
-		}
-
-		if(ok === true){
-			if(messages[key] === undefined){
-				messages[key] = []
-			}
-			messages[key].push({"sender": sender, "data": data, "socket-id-sender": socket.id})
-			console.log("message", key, ":", sender, data)
-
-			for(let a = 0; a < connections[key].length; ++a){
-				io.to(connections[key][a]).emit("chat-message", data, sender, socket.id)
-			}
-		}
-	})
+	socket.on('chat-message', (data, sender) => sendChatMessage(socket, data, sender));
 
 	socket.on('disconnect', () => disconnect(socket));
 })
