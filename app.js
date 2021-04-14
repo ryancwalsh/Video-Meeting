@@ -71,10 +71,10 @@ function joinedCall(socket, socketId, username, path) {
 		io.to(connection).emit("other-participant-joined", socket.id, connections[path], socketIdToUsernameMap.get(socket.id));
 	});
 
-	if (messages[path] !== undefined) {
-		for (let a = 0; a < messages[path].length; ++a) {
-			io.to(socket.id).emit("chat-message", messages[path][a]['data'], messages[path][a]['sender'], messages[path][a]['socket-id-sender']);
-		}
+	if (messages[path] !== undefined) { // When a new participant joins, send all the messages that already existed in the room.
+		messages[path].forEach(message => {
+			io.to(socket.id).emit("chat-message", message['data'], message['sender'], message['socket-id-sender']);
+		});
 	}
 
 	console.log(path, connections[path]);
