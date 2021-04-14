@@ -59,25 +59,26 @@ const roomDimensions = {
 // Room materials have different acoustic reflectivity.
 const roomMaterials = {
   // Room wall materials. https://resonance-audio.github.io/resonance-audio/develop/web/getting-started
-  left: 'marble',
-  right: 'marble',
-  front: 'marble',
-  back: 'marble',
-  down: 'marble', // Room floor
-  up: 'marble', // Room ceiling
+  left: 'transparent',
+  right: 'transparent',
+  front: 'transparent',
+  back: 'transparent',
+  down: 'transparent', // Room floor
+  up: 'transparent', // Room ceiling
 };
 scene.setRoomProperties(roomDimensions, roomMaterials);
 scene.output.connect(audioContext.destination);
+window.pos = [];
 const positions = [
 	{
-		x: -20,
+		x: -2,
 		y: 1,
 		z: 1
 	},
 	{
-		x: 20,
-		y: -1,
-		z: -1
+		x: 2,
+		y: 1,
+		z: 1
 	},
 ];
 
@@ -380,6 +381,7 @@ class Video extends Component {
 						const { x, y, z } = positions.pop();
 						console.log({ mediaElementSource, x, y, z });
 						soundSource.setPosition(x, y, z);
+						window.pos.push(soundSource);
 						mediaElementSource.connect(soundSource.input);
 					}
 				}
