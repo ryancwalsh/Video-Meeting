@@ -36,10 +36,6 @@ const peerConnectionConfig = {
 }
 var socket = null
 var socketId = null
-const audioSources = [
-	'samples/speech-sample.wav',
-	'samples/music.wav',
-];
 // Create an AudioContext
 let audioContext = new AudioContext();
 
@@ -81,6 +77,54 @@ const positions = [
 		z: 1
 	},
 ];
+
+var isMouseDown = false;
+let left = 0;
+const width = 500;
+const colors = ['red', 'blue', 'green'];
+let currentDiv;
+
+function createDraggableDiv(color, content) {
+	console.log('createDraggableDiv(color, content)', color, content);
+	const div = document.createElement("div");
+	div.style.position = "absolute";
+	div.style.left = `${left}px`;
+	div.style.top = "0px";
+	div.style.width = `${width}px`;
+	// div.style.height = "90px";
+	div.style.background = color;
+	left += width;
+
+	document.getElementById('main').appendChild(div);
+	div.append(content);
+
+	div.addEventListener('mousedown', function(e) {
+		isMouseDown = true;
+		const offset = [
+			div.offsetLeft - e.clientX,
+			div.offsetTop - e.clientY
+		];
+		div.setAttribute('data-offset', JSON.stringify(offset));
+		currentDiv = div;
+	}, true);
+}
+
+document.addEventListener('mouseup', function() {
+    isMouseDown = false;
+}, true);
+
+document.addEventListener('mousemove', function(event) {
+    event.preventDefault();
+    if (isMouseDown && currentDiv) {
+    	const mousePosition = {
+            x : event.clientX,
+            y : event.clientY
+        };
+        const offset = JSON.parse(currentDiv.getAttribute('data-offset'));
+        currentDiv.style.left = (mousePosition.x + offset[0]) + 'px';
+        currentDiv.style.top  = (mousePosition.y + offset[1]) + 'px';
+    }
+}, true);
 
 const randomUsername = window.navigator.platform; // TODO faker.name.firstName(); // https://www.npmjs.com/package/faker // TODO: Use value from cookie instead if present.
 
@@ -303,7 +347,7 @@ class Video extends Component {
 		if (wrapper) {
 			wrapper.prepend(video);
 		} else {
-			document.getElementById('unattached-videos').append(video);
+			document.getElementById('main').append(video);
 		}
 	}
 
@@ -367,16 +411,28 @@ class Video extends Component {
 						video.srcObject = event.stream;
 						video.autoplay = true;
 						video.playsinline = true;
-						this.placeVideo(video, participantUserId);
-						const audioElement = document.createElement('audio'); // TODO Remove
-						audioElement.src = audioSources.pop();
-						audioElement.crossOrigin = 'anonymous';
-						audioElement.load();
-						audioElement.play();
-						audioElement.loop = true;
-						document.body.append(audioElement);
-						console.log({ audioElement });
-						const mediaElementSource = audioContext.createMediaElementSource(audioElement);
+						// video.muted = true;
+						// this.placeVideo(video, participantUserId);
+						// const audioElement = document.createElement('audio'); // TODO Remove
+						// const newStream = new MediaStream();
+						// event.stream.getTracks().forEach(track => {
+						// 	if (track.kind === 'audio') { // https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamTrack
+						// 		const newTrack = track.clone();
+						// 		newStream.addTrack(newTrack);
+						// 		track.enabled = false;
+						// 	}
+						// });
+						// audioElement.src = newStream;
+						// audioElement.crossOrigin = 'anonymous';
+						// audioElement.load();
+						// audioElement.play();
+						// document.body.append(audioElement);
+						// console.log({ audioElement });
+						// const mediaElementSource = audioContext.createMediaElementSource(audioElement);
+						const color = colors.pop();
+						console.log('popped color', color);
+						createDraggableDiv(color, video);
+						const mediaElementSource = audioContext.createMediaStreamSource(event.stream);
 						const soundSource = scene.createSource();
 						const { x, y, z } = positions.pop();
 						console.log({ mediaElementSource, x, y, z });
@@ -594,7 +650,6 @@ class Video extends Component {
 									
 								</div>
 								<video className="my-video" data-userid={this.getUniqueUserId()} ref={this.localVideoref} autoPlay muted></video>
-								<div id="unattached-videos"></div>
 
 								<div className="control-panel">
 									<IconButton style={{ color: "#f44336" }} onClick={this.handleEndCall} title="Enable/disable call">
@@ -624,7 +679,6 @@ class Video extends Component {
 											<ChatIcon />
 										</IconButton>
 									</Badge>
-									<audio autoPlay id="outputAudioEl"></audio>
 								</div>
 							</Row>
 						</div>
