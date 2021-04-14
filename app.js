@@ -52,9 +52,9 @@ let sanitizeString = (str) => {
 	return xss(str)
 }
 
-let connections = {}
-let messages = {}
-let timeOnline = {}
+let connections = {};
+let messages = {};
+let timeOnline = {};
 const socketIdToUsernameMap = new Map();
 
 function joinedCall(socket, socketId, username, path) {
@@ -64,13 +64,12 @@ function joinedCall(socket, socketId, username, path) {
 	if (connections[path] === undefined) {
 		connections[path] = []
 	}
-	connections[path].push(socket.id)
+	connections[path].push(socket.id);
+	timeOnline[socket.id] = new Date();
 
-	timeOnline[socket.id] = new Date()
-
-	for (let a = 0; a < connections[path].length; ++a) {
-		io.to(connections[path][a]).emit("other-participant-joined", socket.id, connections[path], socketIdToUsernameMap.get(socket.id));
-	}
+	connections[path].forEach(connection => {
+		io.to(connection).emit("other-participant-joined", socket.id, connections[path], socketIdToUsernameMap.get(socket.id));
+	});
 
 	if (messages[path] !== undefined) {
 		for (let a = 0; a < messages[path].length; ++a) {
@@ -78,7 +77,7 @@ function joinedCall(socket, socketId, username, path) {
 		}
 	}
 
-	console.log(path, connections[path])
+	console.log(path, connections[path]);
 }
 
 function disconnect(socket) {
