@@ -272,8 +272,8 @@ class Video extends Component {
 			console.log({ data });
 		});
 
-		socket.on('other-participant-joined', (id, clients, participantUsername) => {
-			console.log('other-participant-joined', { clients, connections, participantUsername });
+		socket.on('other-participant-joined', (id, clients, otherParticipantUsername) => {
+			console.log('other-participant-joined', { clients, connections, otherParticipantUsername });
 			clients.forEach((socketListId) => {
 				console.log('clients.forEach socketListId', socketListId);
 				const connection = new RTCPeerConnection(peerConnectionConfig);
@@ -294,7 +294,7 @@ class Video extends Component {
 					if (searchVideo !== null) { // Without this check, it would be an empty square.
 						searchVideo.srcObject = event.stream;
 					} else {
-						createDraggableDiv(socketListId, event.stream, participantUsername);
+						createDraggableDiv(socketListId, event.stream, otherParticipantUsername);
 					}
 				}
 
