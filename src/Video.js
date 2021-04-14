@@ -243,8 +243,10 @@ class Video extends Component {
 
 	otherParticipantJoined = (socket, otherParticipantSocketId, clients, otherParticipantUsername) => {
 		console.log('other-participant-joined', { clients, connections, otherParticipantUsername });
-		clients.forEach((socketListId) => {
-			someFuncB(socketListId, socket, connections, otherParticipantUsername);
+		clients.forEach((socketId) => {
+			if (socketId !== mySocketId) {
+				someFuncB(socketId, socket, connections, otherParticipantUsername);
+			}
 		})
 
 		if (otherParticipantSocketId === mySocketId) {
@@ -266,7 +268,7 @@ class Video extends Component {
 		socket.on('chat-message', this.addMessage);
 
 		socket.on('user-left', (id) => {
-			let video = document.querySelector(`[data-socketlistid="${id}"]`)
+			let video = document.querySelector(`[data-socketid="${id}"]`)
 			if (video !== null) {
 				const element = video.closest(`.${draggable}`);
 				element.parentNode.removeChild(element);

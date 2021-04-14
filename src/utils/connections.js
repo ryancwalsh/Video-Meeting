@@ -29,27 +29,27 @@ export function someFuncA(socket, connections, mySocketId) {
     }
 }
 
-export function someFuncB(socketListId, socket, connections, otherParticipantUsername) {
+export function someFuncB(socketId, socket, connections, otherParticipantUsername) {
     // TODO: What is this??
-    console.log('clients.forEach socketListId', socketListId);
+    console.log('clients.forEach socketId', socketId);
     const connection = new RTCPeerConnection(peerConnectionConfig);
     // console.log({ connection });
-    connections[socketListId] = connection;
+    connections[socketId] = connection;
     // Wait for their ice candidate
     connection.onicecandidate = function (event) {
         if (event.candidate != null) {
-            socket.emit('signal', socketListId, JSON.stringify({ 'ice': event.candidate }))
+            socket.emit('signal', socketId, JSON.stringify({ 'ice': event.candidate }))
         }
     }
 
     // Wait for their video stream
     connection.onaddstream = (event) => {
         console.log('onaddstream', { event });
-        const searchVideo = document.querySelector(`[data-socketlistid="${socketListId}"]`)
+        const searchVideo = document.querySelector(`[data-socketid="${socketId}"]`)
         if (searchVideo !== null) { // Without this check, it would be an empty square.
             searchVideo.srcObject = event.stream;
         } else {
-            createDraggableDiv(socketListId, event.stream, otherParticipantUsername);
+            createDraggableDiv(socketId, event.stream, otherParticipantUsername);
         }
     }
 

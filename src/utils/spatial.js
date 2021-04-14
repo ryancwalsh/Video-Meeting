@@ -49,15 +49,15 @@ function getXY (event, offsetJson) {
 	}
 }
 
-function setSoundCoordinates(socketListId, point, participantUsername) {
+function setSoundCoordinates(socketId, point, participantUsername) {
 	const { x, y, z } = point;
-    const soundSource = soundSources[socketListId];
+    const soundSource = soundSources[socketId];
     try {
         soundSource.setPosition(x, y, z); // https://github.com/resonance-audio/resonance-audio-web-sdk/blob/c69e41dae836aea5b41cf4e9e51efcd96e5d0bb6/src/source.js#L178
     } catch (error) {
-        console.error('setSoundCoordinates', socketListId, point, participantUsername, error);
+        console.error('setSoundCoordinates', socketId, point, participantUsername, error);
     }
-	console.log(participantUsername, x, y, z, socketListId, soundSource);
+	console.log(participantUsername, x, y, z, socketId, soundSource);
 }
 
 function scaleCoordinates(currentDiv, roomDimensions, container) {
@@ -107,10 +107,10 @@ function getRestrictedPosition(div, event) {
     return { x, y };
 }
 
-function createVideo(socketListId, stream, participantUsername) {
+function createVideo(socketId, stream, participantUsername) {
     const video = document.createElement('video');
     video.classList.add('other-participant');
-    video.setAttribute('data-socketlistid', socketListId);
+    video.setAttribute('data-socketid', socketId);
     video.setAttribute('data-username', participantUsername);
     video.srcObject = stream;
     video.autoplay = true;
@@ -118,7 +118,7 @@ function createVideo(socketListId, stream, participantUsername) {
     return video;
 }
 
-function getWrapper(socketListId, participantUsername) {
+function getWrapper(socketId, participantUsername) {
     const color = colors.pop();
     const div = document.createElement("div");
 	div.style.position = "absolute";
@@ -128,13 +128,13 @@ function getWrapper(socketListId, participantUsername) {
     div.style.background = color;
     div.classList.add(draggable);
     div.setAttribute('data-participantUsername', participantUsername);
-    div.setAttribute('data-socketlistid', socketListId);
+    div.setAttribute('data-socketid', socketId);
     return div;
 }
 
-export function createDraggableDiv(socketListId, stream, participantUsername) {
-    const video = createVideo(socketListId, stream, participantUsername);
-    const div = getWrapper(socketListId, participantUsername);
+export function createDraggableDiv(socketId, stream, participantUsername) {
+    const video = createVideo(socketId, stream, participantUsername);
+    const div = getWrapper(socketId, participantUsername);
 	left += width;
 
 	document.getElementById('main').appendChild(div);
@@ -146,7 +146,7 @@ export function createDraggableDiv(socketListId, stream, participantUsername) {
     
     const mediaElementSource = audioContext.createMediaStreamSource(video.srcObject);
     const soundSource = scene.createSource();
-    soundSources[socketListId] = soundSource;
+    soundSources[socketId] = soundSource;
     mediaElementSource.connect(soundSource.input);
     console.log('mediaElementSource', mediaElementSource);
 }
@@ -173,10 +173,10 @@ document.addEventListener('mousemove', function (event) {
 		const { x, y } = getXY(event, currentDiv.getAttribute('data-offset'));
 		currentDiv.style.left = x + 'px';
         currentDiv.style.top = y + 'px';
-        const socketListId = currentDiv.getAttribute('data-socketlistid');
+        const socketId = currentDiv.getAttribute('data-socketid');
         const participantUsername = currentDiv.getAttribute('data-participantUsername');
         const container = document.getElementById('main');
 		const point = scaleCoordinates(currentDiv, roomDimensions, container);
-		setSoundCoordinates(socketListId, point, participantUsername);
+		setSoundCoordinates(socketId, point, participantUsername);
     }
 }, true);
