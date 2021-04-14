@@ -61,6 +61,25 @@ function scaleCoordinates(point, roomDimensions) { // TODO
 	}
 }
 
+function getRestrictedPosition(div, event) {
+    let x = div.offsetLeft - event.clientX;
+    let y = div.offsetTop - event.clientY;
+    return { x, y };
+    if (x < 0) { // https://stackoverflow.com/a/25933582/470749
+        x = 0;
+    }
+    if (y < 0) {
+        y = 0;
+    }
+    // TODO if (x + eWi > cWi) {
+    //     x = cWi - eWi;
+    // }
+    // if (y + eHe > cHe) {
+    //     y = cHe - eHe;
+    // }
+    return { x, y };
+}
+
 export function createDraggableDiv(participantUserId, video) {
 	const color = colors.pop();
 	console.log('createDraggableDiv', color, video);
@@ -83,13 +102,10 @@ export function createDraggableDiv(participantUserId, video) {
     mediaElementSource.connect(soundSource.input);
     console.log('mediaElementSource', mediaElementSource);
 
-	div.addEventListener('mousedown', function(e) {
+	div.addEventListener('mousedown', function(event) {
 		isMouseDown = true;
-		const offset = {
-			x: div.offsetLeft - e.clientX,
-			y: div.offsetTop - e.clientY
-		};
-		div.setAttribute('data-offset', JSON.stringify(offset));
+        const xy = getRestrictedPosition(div, event);
+		div.setAttribute('data-offset', JSON.stringify(xy));
 		currentDiv = div;
     }, true);
 }
