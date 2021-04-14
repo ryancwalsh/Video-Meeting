@@ -8,9 +8,9 @@ let currentDiv;
 
 // By default, room dimensions are undefined (0m x 0m x 0m). https://resonance-audio.github.io/resonance-audio/develop/web/getting-started
 const roomDimensions = {
-  width: 5,
-  height: 5,
-  depth: 5,
+  width: 15,
+  height: 15,
+  depth: 15,
 };
 
 // Room materials have different acoustic reflectivity.
@@ -107,10 +107,20 @@ function getRestrictedPosition(div, event) {
     return { x, y };
 }
 
-export function createDraggableDiv(participantUsername, socketListId, video) {
-	const color = colors.pop();
-	console.log('createDraggableDiv', color, video);
-	const div = document.createElement("div");
+function createVideo(socketListId, stream, participantUsername) {
+    const video = document.createElement('video');
+    video.classList.add('other-participant');
+    video.setAttribute('data-socketlistid', socketListId);
+    video.setAttribute('data-username', participantUsername);
+    video.srcObject = stream;
+    video.autoplay = true;
+    video.playsinline = true;
+    return video;
+}
+
+function getWrapper(socketListId, participantUsername) {
+    const color = colors.pop();
+    const div = document.createElement("div");
 	div.style.position = "absolute";
 	div.style.left = `${left}px`;
 	div.style.top = "0px";
@@ -119,6 +129,12 @@ export function createDraggableDiv(participantUsername, socketListId, video) {
     div.classList.add(draggable);
     div.setAttribute('data-participantUsername', participantUsername);
     div.setAttribute('data-socketlistid', socketListId);
+    return div;
+}
+
+export function createDraggableDiv(socketListId, stream, participantUsername) {
+    const video = createVideo(socketListId, stream, participantUsername);
+    const div = getWrapper(socketListId, participantUsername);
 	left += width;
 
 	document.getElementById('main').appendChild(div);

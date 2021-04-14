@@ -294,14 +294,7 @@ class Video extends Component {
 					if (searchVideo !== null) { // Without this check, it would be an empty square.
 						searchVideo.srcObject = event.stream;
 					} else {
-						const video = document.createElement('video');
-						video.classList.add('other-participant');
-						video.setAttribute('data-socketlistid', socketListId);
-						video.setAttribute('data-username', participantUsername);
-						video.srcObject = event.stream;
-						video.autoplay = true;
-						video.playsinline = true;
-						createDraggableDiv(participantUsername, socketListId, video);
+						createDraggableDiv(socketListId, event.stream, participantUsername);
 					}
 				}
 

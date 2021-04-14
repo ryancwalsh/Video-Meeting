@@ -118,8 +118,8 @@ io.on('connection', (socket) => {
 	})
 
 	socket.on('disconnect', () => {
-		console.log('disconnect');
 		socketIdToUsernameMap.delete(socket.id);
+		console.log('disconnect', socketIdToUsernameMap);
 		var diffTime = Math.abs(timeOnline[socket.id] - new Date())
 		var key
 		for (const [k, v] of JSON.parse(JSON.stringify(Object.entries(connections)))) {
