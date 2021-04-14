@@ -3,13 +3,14 @@ let isMouseDown = false;
 let left = 0;
 const width = 500;
 const colors = ['red', 'blue', 'green'];
+const draggable = 'draggable';
 let currentDiv;
 
 // By default, room dimensions are undefined (0m x 0m x 0m). https://resonance-audio.github.io/resonance-audio/develop/web/getting-started
 const roomDimensions = {
-  width: 25,
-  height: 25,
-  depth: 25,
+  width: 5,
+  height: 5,
+  depth: 5,
 };
 
 // Room materials have different acoustic reflectivity.
@@ -108,7 +109,8 @@ export function createDraggableDiv(participantUserId, video) {
 	div.style.left = `${left}px`;
 	div.style.top = "0px";
 	div.style.width = `${width}px`;
-	div.style.background = color;
+    div.style.background = color;
+    div.classList.add(draggable);
 	div.setAttribute('data-participantUserId', participantUserId);
 	left += width;
 
@@ -121,14 +123,18 @@ export function createDraggableDiv(participantUserId, video) {
     soundSources[participantUserId] = soundSource;
     mediaElementSource.connect(soundSource.input);
     console.log('mediaElementSource', mediaElementSource);
-
-	div.addEventListener('mousedown', function(event) {
-		isMouseDown = true;
-        const xy = getRestrictedPosition(div, event);
-		div.setAttribute('data-offset', JSON.stringify(xy));
-		currentDiv = div;
-    }, true);
 }
+
+document.addEventListener('mousedown', function(event) {
+    isMouseDown = true;
+    // console.log('mousedown', event.target, event);
+    if (event.target.classList.contains(draggable)) {
+        currentDiv = event.target;
+        console.log('mousedown', currentDiv.style.background, currentDiv.getAttribute('data-participantUserId'));
+        const xy = getRestrictedPosition(currentDiv, event);
+        currentDiv.setAttribute('data-offset', JSON.stringify(xy));
+    }
+}, true);
 
 document.addEventListener('mouseup', function() {
     isMouseDown = false;
