@@ -152,11 +152,11 @@ export function createDraggableDiv(socketId, stream, participantUsername) {
 }
 
 document.addEventListener('mousedown', function(event) {
-    isMouseDown = true;
     console.log('mousedown', event.target, event);
     const div = event.target.closest(`.${draggable}`);
     if (div) {
         currentDiv = div;
+        isMouseDown = true;
         console.log('mousedown', currentDiv.style.background, currentDiv.getAttribute('data-participantUsername'), event);
         const xy = getRestrictedPosition(currentDiv, event);
         currentDiv.setAttribute('data-offset', JSON.stringify(xy));
