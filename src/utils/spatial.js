@@ -133,6 +133,7 @@ function getWrapper(socketId, participantUsername) {
 }
 
 export function createDraggableDiv(socketId, stream, participantUsername) {
+    console.log('createDraggableDiv', socketId, participantUsername);
     const video = createVideo(socketId, stream, participantUsername);
     const div = getWrapper(socketId, participantUsername);
 	left += width;

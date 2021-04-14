@@ -55,11 +55,11 @@ let sanitizeString = (str) => {
 let connections = {};
 let messages = {};
 let timeOnline = {};
-const socketIdToUsernameMap = new Map();
+const socketIdToUsernameObj = {}; // Using an object instead of Map since it seems that a Map can't be sent as a param via `emit`.
 
 function joinedCall(socket, socketId, username, path) {
-	socketIdToUsernameMap.set(socketId, username);
-	console.log('joined-call', { socketId, username, path }, socketIdToUsernameMap);
+	socketIdToUsernameObj[socketId] = username; 
+	console.log('joined-call', { socketId, username, path }, socketIdToUsernameObj);
 	// socket.data.username = username; // https://socket.io/docs/v4/server-socket-instance/#Socket-data
 	if (connections[path] === undefined) {
 		connections[path] = []
@@ -68,7 +68,7 @@ function joinedCall(socket, socketId, username, path) {
 	timeOnline[socket.id] = new Date();
 
 	connections[path].forEach(connection => {
-		io.to(connection).emit("other-participant-joined", socket.id, connections[path], socketIdToUsernameMap.get(socket.id));
+		io.to(connection).emit("other-participant-joined", socket.id, connections[path], socketIdToUsernameObj);
 	});
 
 	if (messages[path] !== undefined) { // When a new participant joins, send all the messages that already existed in the room.
@@ -81,8 +81,8 @@ function joinedCall(socket, socketId, username, path) {
 }
 
 function disconnect(socket) {
-	socketIdToUsernameMap.delete(socket.id);
-	console.log('disconnect', socketIdToUsernameMap);
+	delete socketIdToUsernameObj[socket.id];
+	console.log('disconnect', socketIdToUsernameObj);
 	var diffTime = Math.abs(timeOnline[socket.id] - new Date())
 	var key
 	for (const [k, v] of JSON.parse(JSON.stringify(Object.entries(connections)))) {

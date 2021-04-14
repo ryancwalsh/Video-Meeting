@@ -21,7 +21,7 @@ import 'bootstrap/dist/css/bootstrap.css'
 // import { guid } from './utils/rand';
 import { draggable } from './utils/spatial';
 import { getSilentBlackStream } from './utils/video';
-import { someFuncA, someFuncB } from './utils/connections';
+import { someFuncA, createRTCPeerConnection } from './utils/connections';
 import "./Video.css"
 
 const socketUrl = process.env.REACT_APP_SOCKET_URL; // https://stackoverflow.com/a/56668716/470749
@@ -241,11 +241,11 @@ class Video extends Component {
 		}
 	}
 
-	otherParticipantJoined = (socket, otherParticipantSocketId, clients, otherParticipantUsername) => {
-		console.log('other-participant-joined', { clients, connections, otherParticipantUsername });
+	otherParticipantJoined = (socket, otherParticipantSocketId, clients, socketIdToUsernameObj) => {
+		console.log('other-participant-joined', { clients, connections, socketIdToUsernameObj });
 		clients.forEach((socketId) => {
 			if (socketId !== mySocketId) {
-				someFuncB(socketId, socket, connections, otherParticipantUsername);
+				createRTCPeerConnection(socketId, socket, connections, socketIdToUsernameObj[socketId]);
 			}
 		})
 
