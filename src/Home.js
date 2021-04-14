@@ -3,7 +3,7 @@ import { Input, Button } from '@material-ui/core';
 import { guid } from './utils/rand';
 import "./Home.css"
 
-const randomMeetingCode = guid();
+const randomMeetingCode = 'demo'; // TODO: guid();
 
 class Home extends Component {
   	constructor (props) {
