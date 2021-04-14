@@ -35,7 +35,7 @@ video {
     max-width: 100%;
 }
 
-video.my-video {
+.my-video-container {
     position: fixed;
     bottom: 0;
     right: 0;
@@ -77,6 +77,6 @@ video.my-video-preview {
     display: flex;
 }
 
-.positioned-participant .username {
-    
+.username {
+    font-weight: bold;
 }

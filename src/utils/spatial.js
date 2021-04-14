@@ -3,7 +3,7 @@ let isMouseDown = false;
 let left = 0;
 const width = 500;
 const colors = ['red', 'blue', 'green'];
-const draggable = 'draggable';
+export const draggable = 'draggable';
 let currentDiv;
 
 // By default, room dimensions are undefined (0m x 0m x 0m). https://resonance-audio.github.io/resonance-audio/develop/web/getting-started
@@ -49,11 +49,15 @@ function getXY (event, offsetJson) {
 	}
 }
 
-function setSoundCoordinates(participantUserId, point) {
+function setSoundCoordinates(socketListId, point, participantUsername) {
 	const { x, y, z } = point;
-	const soundSource = soundSources[participantUserId]; // TODO: Fix the bug where participantUserId collides.
-	soundSource.setPosition(x, y, z); // https://github.com/resonance-audio/resonance-audio-web-sdk/blob/c69e41dae836aea5b41cf4e9e51efcd96e5d0bb6/src/source.js#L178
-	console.log(soundSource, x, y, z);
+    const soundSource = soundSources[socketListId];
+    try {
+        soundSource.setPosition(x, y, z); // https://github.com/resonance-audio/resonance-audio-web-sdk/blob/c69e41dae836aea5b41cf4e9e51efcd96e5d0bb6/src/source.js#L178
+    } catch (error) {
+        console.error('setSoundCoordinates', socketListId, point, participantUsername, error);
+    }
+	console.log(participantUsername, x, y, z, socketListId, soundSource);
 }
 
 function scaleCoordinates(currentDiv, roomDimensions, container) {
@@ -103,7 +107,7 @@ function getRestrictedPosition(div, event) {
     return { x, y };
 }
 
-export function createDraggableDiv(participantUserId, video) {
+export function createDraggableDiv(participantUsername, socketListId, video) {
 	const color = colors.pop();
 	console.log('createDraggableDiv', color, video);
 	const div = document.createElement("div");
@@ -113,26 +117,30 @@ export function createDraggableDiv(participantUserId, video) {
 	div.style.width = `${width}px`;
     div.style.background = color;
     div.classList.add(draggable);
-	div.setAttribute('data-participantUserId', participantUserId);
+	div.setAttribute('data-participantUsername', participantUsername);
 	left += width;
 
 	document.getElementById('main').appendChild(div);
-	div.append(video);
-    div.append(participantUserId);
+    div.append(video);
+    const usernameDiv = document.createElement("div");
+    usernameDiv.classList.add('username');
+    usernameDiv.append(participantUsername);
+    div.append(usernameDiv);
     
     const mediaElementSource = audioContext.createMediaStreamSource(video.srcObject);
     const soundSource = scene.createSource();
-    soundSources[participantUserId] = soundSource;
+    soundSources[socketListId] = soundSource;
     mediaElementSource.connect(soundSource.input);
     console.log('mediaElementSource', mediaElementSource);
 }
 
 document.addEventListener('mousedown', function(event) {
     isMouseDown = true;
-    // console.log('mousedown', event.target, event);
-    if (event.target.classList.contains(draggable)) {
-        currentDiv = event.target;
-        console.log('mousedown', currentDiv.style.background, currentDiv.getAttribute('data-participantUserId'), event);
+    console.log('mousedown', event.target, event);
+    const div = event.target.closest(`.${draggable}`);
+    if (div) {
+        currentDiv = div;
+        console.log('mousedown', currentDiv.style.background, currentDiv.getAttribute('data-participantUsername'), event);
         const xy = getRestrictedPosition(currentDiv, event);
         currentDiv.setAttribute('data-offset', JSON.stringify(xy));
     }
@@ -147,10 +155,11 @@ document.addEventListener('mousemove', function (event) {
 	if (isMouseDown && currentDiv) {
 		const { x, y } = getXY(event, currentDiv.getAttribute('data-offset'));
 		currentDiv.style.left = x + 'px';
-		currentDiv.style.top = y + 'px';
-        const participantUserId = currentDiv.getAttribute('data-participantUserId');
+        currentDiv.style.top = y + 'px';
+        const socketListId = currentDiv.getAttribute('data-socketlistid');
+        const participantUsername = currentDiv.getAttribute('data-participantUsername');
         const container = document.getElementById('main');
 		const point = scaleCoordinates(currentDiv, roomDimensions, container);
-		setSoundCoordinates(participantUserId, point);
+		setSoundCoordinates(socketListId, point, participantUsername);
     }
 }, true);

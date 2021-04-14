@@ -18,8 +18,8 @@ import { Row } from 'reactstrap'
 import Modal from 'react-bootstrap/Modal'
 import 'bootstrap/dist/css/bootstrap.css'
 
-import { guid } from './utils/rand';
-import { createDraggableDiv } from './utils/spatial';
+// import { guid } from './utils/rand';
+import { createDraggableDiv, draggable } from './utils/spatial';
 import "./Video.css"
 
 const socketUrl = process.env.REACT_APP_SOCKET_URL; // https://stackoverflow.com/a/56668716/470749
@@ -247,34 +247,25 @@ class Video extends Component {
 		}
 	}
 
-	getUniqueUserId = () => {
-		return `${this.state.username.replace(' ', '_')}_${guid()}`;
-	}
-
 	connectToSocketServer = async () => {
-		const uniqueUserId = this.getUniqueUserId();
 		socket = io.connect(socketUrl, { secure: true })
 
 		socket.on('signal', this.gotMessageFromServer);
 
 		socket.on('connect', () => {
 			console.log('connect');
-			socket.emit('set-userid', uniqueUserId); // https://socket.io/docs/v4/emitting-events/#Basic-emit
-			socket.emit('join-call', window.location.href)
 			socketId = socket.id
+			socket.emit('set-username', socketId, this.state.username); // https://socket.io/docs/v4/emitting-events/#Basic-emit
+			socket.emit('join-call', window.location.href);
 		});
 
 		socket.on('chat-message', this.addMessage);
 
 		socket.on('user-left', (id) => {
-			let video = document.querySelector(`[data-socket="${id}"]`)
+			let video = document.querySelector(`[data-socketlistid="${id}"]`)
 			if (video !== null) {
-				const videoParent = video.parentNode;
-				if (videoParent.classList.contains('positioned-participant')) {
-					videoParent.parentNode.removeChild(videoParent);
-				} else {
-					videoParent.removeChild(video);
-				}
+				const element = video.closest(`.${draggable}`);
+				element.parentNode.removeChild(element);
 			}
 		});
 
@@ -282,10 +273,10 @@ class Video extends Component {
 			console.log({ data });
 		});
 
-		socket.on('user-joined', (id, clients, participantUserId) => {
-			console.log('user-joined', { clients, connections, participantUserId });
+		socket.on('user-joined', (id, clients, participantUsername) => {
+			console.log('user-joined', { clients, connections, participantUsername });
 			clients.forEach((socketListId) => {
-				// console.log('clients.forEach socketListId', socketListId);
+				console.log('clients.forEach socketListId', socketListId);
 				const connection = new RTCPeerConnection(peerConnectionConfig);
 				// console.log({ connection });
 				connections[socketListId] = connection;
@@ -300,18 +291,18 @@ class Video extends Component {
 				connection.onaddstream = (event) => {
 					console.log('onaddstream', { event });
 					// TODO mute button, full screen button
-					var searchVideo = document.querySelector(`[data-socket="${socketListId}"]`)
+					var searchVideo = document.querySelector(`[data-socketlistid="${socketListId}"]`)
 					if (searchVideo !== null) { // Without this check, it would be an empty square.
 						searchVideo.srcObject = event.stream;
 					} else {
 						const video = document.createElement('video');
 						video.classList.add('other-participant');
-						video.setAttribute('data-socket', socketListId);
-						video.setAttribute('data-userid', participantUserId);
+						video.setAttribute('data-socketlistid', socketListId);
+						video.setAttribute('data-username', participantUsername);
 						video.srcObject = event.stream;
 						video.autoplay = true;
 						video.playsinline = true;
-						createDraggableDiv(participantUserId, video);
+						createDraggableDiv(participantUsername, socketListId, video);
 					}
 				}
 
@@ -477,7 +468,7 @@ class Video extends Component {
 								textAlign: "center", margin: "auto", marginTop: "50px", justifyContent: "center"}}>
 							<p style={{ margin: 0, fontWeight: "bold", paddingRight: "50px" }}>What is your name?</p>
 							<form onSubmit={this.connect}>
-								<Input placeholder={randomUsername} value={this.state.username} onChange={e => this.handleUsername(e)} />
+								<Input placeholder={randomUsername} value={this.state.username} onChange={e => this.handleUsername(e)} autoFocus />
 								<Button variant="contained" color="primary" style={{ margin: "20px" }} type="submit">Connect</Button>
 								<p>(If you don't provide your name, this random one will be used.)</p>
 							</form>
@@ -522,7 +513,10 @@ class Video extends Component {
 								<div id="main" className="other-participants">
 									
 								</div>
-								<video className="my-video" data-userid={this.getUniqueUserId()} ref={this.localVideoref} autoPlay muted></video>
+								<div className="my-video-container">
+									<video data-username={this.state.username} ref={this.localVideoref} autoPlay muted></video>
+									<div className="username">{this.state.username}</div>
+								</div>
 
 								<div className="control-panel">
 									<IconButton style={{ color: "#f44336" }} onClick={this.handleEndCall} title="Enable/disable call">
