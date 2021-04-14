@@ -34,7 +34,7 @@ const peerConnectionConfig = {
 	]
 }
 var socket = null
-var socketId = null
+var mySocketId = null
 
 const randomUsername = window.navigator.platform; // TODO faker.name.firstName(); // https://www.npmjs.com/package/faker // TODO: Use value from cookie instead if present.
 
@@ -128,7 +128,7 @@ class Video extends Component {
 		this.localVideoref.current.srcObject = stream
 
 		for (let id in connections) {
-			if (id === socketId) continue
+			if (id === mySocketId) continue
 
 			connections[id].addStream(window.localStream)
 
@@ -191,7 +191,7 @@ class Video extends Component {
 		this.localVideoref.current.srcObject = stream
 
 		for (let id in connections) {
-			if (id === socketId) continue
+			if (id === mySocketId) continue
 
 			connections[id].addStream(window.localStream)
 
@@ -228,7 +228,7 @@ class Video extends Component {
 		console.log('gotMessageFromServer', { fromId, message });
 		var signal = JSON.parse(message)
 
-		if (fromId !== socketId) {
+		if (fromId !== mySocketId) {
 			if (signal.sdp) {
 				connections[fromId].setRemoteDescription(new RTCSessionDescription(signal.sdp)).then(() => {
 					if (signal.sdp.type === 'offer') {
@@ -253,9 +253,9 @@ class Video extends Component {
 		socket.on('signal', this.gotMessageFromServer);
 
 		socket.on('connect', () => {
-			socketId = socket.id;
-			console.log('connect', socketId, this.state.username, window.location.href);
-			socket.emit('joined-call', socketId, this.state.username, window.location.href); // https://socket.io/docs/v4/emitting-events/#Basic-emit
+			mySocketId = socket.id;
+			console.log('connect', mySocketId, this.state.username, window.location.href);
+			socket.emit('joined-call', mySocketId, this.state.username, window.location.href); // https://socket.io/docs/v4/emitting-events/#Basic-emit
 		});
 
 		socket.on('chat-message', this.addMessage);
@@ -272,7 +272,7 @@ class Video extends Component {
 			console.log({ data });
 		});
 
-		socket.on('other-participant-joined', (id, clients, otherParticipantUsername) => {
+		socket.on('other-participant-joined', (otherParticipantSocketId, clients, otherParticipantUsername) => {
 			console.log('other-participant-joined', { clients, connections, otherParticipantUsername });
 			clients.forEach((socketListId) => {
 				console.log('clients.forEach socketListId', socketListId);
@@ -309,9 +309,9 @@ class Video extends Component {
 				}
 			})
 
-			if (id === socketId) {
+			if (otherParticipantSocketId === mySocketId) {
 				for (let id2 in connections) {
-					if (id2 === socketId) {
+					if (id2 === mySocketId) {
 						continue;
 					}
 					
@@ -382,7 +382,7 @@ class Video extends Component {
 		this.setState(prevState => ({
 			messages: [...prevState.messages, { "sender": sender, "data": data }],
 		}))
-		if (socketIdSender !== socketId) {
+		if (socketIdSender !== mySocketId) {
 			this.setState({ newmessages: this.state.newmessages + 1 })
 		}
 	}
