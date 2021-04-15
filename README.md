@@ -24,13 +24,15 @@ Try Video Meeting here [video.sebastienbiollo.com](https://video.sebastienbiollo
 
 ### TODO
 
+1. Move to clone of RedwoodPlus
+1. Deploy to Netlify
+1. Test with 3+ people
+1. Refactor Video.js
+1. Make videos snap-draggable and handle N participants
 1. Fix the connection bugs
-1. Test on LocalTunnel
-1. Move to RedwoodPlus
-   1. Set up Prettier and Eslint
-   1. Make deployable on Netlify
-   1. Split Video.js into smaller files
+1. Set up Prettier and Eslint
 1. Use cookie to save username / session
+1. fix chat
 1. Disable video by default (but allow optional preview before starting call)
 1. Improve styles
 1. Convert to TypeScript
