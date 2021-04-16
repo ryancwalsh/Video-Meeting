@@ -1,7 +1,7 @@
-// require('dotenv').config(); // https://www.npmjs.com/package/dotenv
+require('dotenv').config(); // https://www.npmjs.com/package/dotenv
 const express = require('express')
 const https = require('https');
-// const http = require('http');
+const http = require('http');
 var fs = require('fs');
 var cors = require('cors')
 const app = express()
@@ -10,28 +10,30 @@ const path = require("path")
 var xss = require("xss")
 const port = process.env.API_PORT || 4001;
 // ----------------------------------------------------------------
-// TODO: https://stackoverflow.com/questions/56744208/fs-readfilesync-cannot-read-file-passing-path-variable-in-nodejs#comment118494792_56744208
-// TODO: Update note in .env.example
-// const keyPath = process.env.SSL_KEY_FILE.substring(2);
-// const crtPath = process.env.SSL_CRT_FILE.substring(2);
-const keyPath = "keys/xip.io.key";
-const crtPath = "keys/xip.io.crt";
-console.log({ keyPath, crtPath });
+let server;
+const options = {};
+if (process.env.HTTPS) {
+	// TODO: https://stackoverflow.com/questions/56744208/fs-readfilesync-cannot-read-file-passing-path-variable-in-nodejs#comment118494792_56744208
+	// TODO: Update note in .env.example
+	// const keyPath = process.env.SSL_KEY_FILE.substring(2);
+	// const crtPath = process.env.SSL_CRT_FILE.substring(2);
+	const keyPath = "keys/xip.io.key";
+	const crtPath = "keys/xip.io.crt";
+	console.log({ keyPath, crtPath });
 
-var options = { // https://nodejs.org/en/knowledge/HTTP/servers/how-to-create-a-HTTPS-server/ and https://programmerblog.net/nodejs-https-server/
-	key: fs.readFileSync(keyPath), // https://serversforhackers.com/c/self-signed-ssl-certificates https://github.com/ryancwalsh/xip.io-cert https://www.freecodecamp.org/news/how-to-set-up-https-locally-with-create-react-app/
-	cert: fs.readFileSync(crtPath)
-};
-console.log({ options });
-
-// const server = http.createServer(options, function (req, res) {  // If I run `./node_modules/.bin/lt -s groupchatapi -p 4001` in a separate terminal and then visit https://groupchatapi.loca.lt/, I see the correct page.
-//   res.writeHead(200);
-//   res.end("hello world " + Date());
-// });
-
-let server = https.createServer(options, app)
-// let server = http.createServer(options, app)
-console.log({ server });
+	// https://nodejs.org/en/knowledge/HTTP/servers/how-to-create-a-HTTPS-server/ and https://programmerblog.net/nodejs-https-server/
+	options.key = fs.readFileSync(keyPath); // https://serversforhackers.com/c/self-signed-ssl-certificates https://github.com/ryancwalsh/xip.io-cert https://www.freecodecamp.org/news/how-to-set-up-https-locally-with-create-react-app/
+	options.cert = fs.readFileSync(crtPath);
+	console.log({ options });
+	server = https.createServer(options, app);
+} else {
+	// server = http.createServer(options, function (req, res) {  // If I run `./node_modules/.bin/lt -s groupchatapi -p 4001` in a separate terminal and then visit https://groupchatapi.loca.lt/, I see the correct page.
+	//   res.writeHead(200);
+	//   res.end("hello world " + Date());
+	// });
+	server = http.createServer(options, app);
+}
+console.log('HTTPS=', process.env.HTTPS, { server });
 
 const io = require("socket.io")(server, {
 	cors: { // https://socket.io/docs/v4/handling-cors/
