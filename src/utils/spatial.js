@@ -137,6 +137,14 @@ function getWrapper(socketId, participantUsername) {
     return div;
 }
 
+function updateCoordinatesBasedOnPositionWithinContainer(div){
+    const socketId = div.getAttribute('data-socketid');
+    const participantUsername = div.getAttribute('data-participantUsername');
+    const container = document.getElementById('main');
+    const point = scaleCoordinates(div, roomDimensions, container);
+    setSoundCoordinates(socketId, point, participantUsername);
+}
+
 export function createDraggableDiv(socketId, stream, participantUsername) {
     console.log('createDraggableDiv', socketId, participantUsername);
     const video = createVideo(socketId, stream, participantUsername);
@@ -155,6 +163,7 @@ export function createDraggableDiv(socketId, stream, participantUsername) {
     video.muted = true;
     const mediaStreamAudioSourceNode = audioContext.createMediaStreamSource(streamClone); // https://github.com/resonance-audio/resonance-audio-web-sdk/issues/34
     mediaStreamAudioSourceNode.connect(soundSource.input);
+    updateCoordinatesBasedOnPositionWithinContainer(div);
 }
 
 document.addEventListener('mousedown', function(event) {
@@ -179,10 +188,6 @@ document.addEventListener('mousemove', function (event) {
 		const { x, y } = getXY(event, currentDiv.getAttribute('data-offset'));
 		currentDiv.style.left = x + 'px';
         currentDiv.style.top = y + 'px';
-        const socketId = currentDiv.getAttribute('data-socketid');
-        const participantUsername = currentDiv.getAttribute('data-participantUsername');
-        const container = document.getElementById('main');
-		const point = scaleCoordinates(currentDiv, roomDimensions, container);
-		setSoundCoordinates(socketId, point, participantUsername);
+        updateCoordinatesBasedOnPositionWithinContainer(currentDiv);
     }
 }, true);
