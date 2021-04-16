@@ -1,7 +1,7 @@
 // require('dotenv').config(); // https://www.npmjs.com/package/dotenv
 const express = require('express')
-// const https = require('https');
-const http = require('http');
+const https = require('https');
+// const http = require('http');
 var fs = require('fs');
 var cors = require('cors')
 const app = express()
@@ -29,8 +29,8 @@ console.log({ options });
 //   res.end("hello world " + Date());
 // });
 
-// var server = https.createServer(options, app)
-let server = http.createServer(options, app)
+let server = https.createServer(options, app)
+// let server = http.createServer(options, app)
 console.log({ server });
 
 const io = require("socket.io")(server, {
