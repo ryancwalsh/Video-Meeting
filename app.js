@@ -1,13 +1,14 @@
 // require('dotenv').config(); // https://www.npmjs.com/package/dotenv
 const express = require('express')
-var https = require('https');
+const https = require('https');
+// const http = require('http');
 var fs = require('fs');
 var cors = require('cors')
 const app = express()
 const bodyParser = require('body-parser')
 const path = require("path")
 var xss = require("xss")
-
+const port = process.env.API_PORT || 4001;
 // ----------------------------------------------------------------
 // TODO: https://stackoverflow.com/questions/56744208/fs-readfilesync-cannot-read-file-passing-path-variable-in-nodejs#comment118494792_56744208
 // TODO: Update note in .env.example
@@ -23,6 +24,10 @@ var options = { // https://nodejs.org/en/knowledge/HTTP/servers/how-to-create-a-
 };
 console.log({ options });
 
+// const server = http.createServer(options, function (req, res) {
+//   res.writeHead(200);
+//   res.end("hello world2");
+// });
 
 var server = https.createServer(options, app)
 console.log({ server });
@@ -44,7 +49,7 @@ if (process.env.NODE_ENV === 'production') {
 		res.sendFile(path.join(__dirname + "/build/index.html"))
 	})
 }
-const port = process.env.PORT || 4001;
+
 console.log({ port });
 app.set('port', port);
 
@@ -151,4 +156,4 @@ io.on('connection', (socket) => {
 
 server.listen(port, () => {
 	console.log("listening on", port)
-})
+});
