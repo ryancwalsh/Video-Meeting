@@ -24,12 +24,13 @@ var options = { // https://nodejs.org/en/knowledge/HTTP/servers/how-to-create-a-
 };
 console.log({ options });
 
-const server = http.createServer(options, function (req, res) {  // If I run `./node_modules/.bin/lt -s groupchatapi -p 4001` in a separate terminal and then visit https://groupchatapi.loca.lt/, I see the correct page.
-  res.writeHead(200);
-  res.end("hello world " + Date());
-});
-/*
-var server = https.createServer(options, app)
+// const server = http.createServer(options, function (req, res) {  // If I run `./node_modules/.bin/lt -s groupchatapi -p 4001` in a separate terminal and then visit https://groupchatapi.loca.lt/, I see the correct page.
+//   res.writeHead(200);
+//   res.end("hello world " + Date());
+// });
+
+// var server = https.createServer(options, app)
+let server = http.createServer(options, app)
 console.log({ server });
 
 const io = require("socket.io")(server, {
@@ -153,7 +154,7 @@ io.on('connection', (socket) => {
 
 	socket.on('disconnect', () => disconnect(socket));
 })
-*/
+
 server.listen(port, () => {
 	console.log("listening on", port)
 });
