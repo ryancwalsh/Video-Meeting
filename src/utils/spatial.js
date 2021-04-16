@@ -12,9 +12,9 @@ const audioSources = [
 
 // By default, room dimensions are undefined (0m x 0m x 0m). https://resonance-audio.github.io/resonance-audio/develop/web/getting-started
 const roomDimensions = {
-  width: 15,
-  height: 15,
-  depth: 15,
+  width: 5,
+  height: 5,
+  depth: 5,
 };
 
 // Room materials have different acoustic reflectivity.
